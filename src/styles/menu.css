@@ -52,7 +52,7 @@
 }
 .mitem__media { aspect-ratio: 1; border-radius: var(--r-md); }
 .mitem__media .img { transition: transform 0.9s var(--ease); }
-.mitem:hover .mitem__media .img { transform: scale(1.05); }
+.mitem:hover .mitem__media .img { transform: scale(1.06) rotate(-1deg); }
 
 .mitem__body { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-top: auto; }
 .mitem__name { font-size: clamp(18px, 1.5vw, 22px); line-height: 0.98; color: var(--burgundy); }

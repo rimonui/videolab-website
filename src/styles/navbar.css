@@ -47,9 +47,18 @@
 
 .nav__burger { display: none; }
 
+.nav__progress {
+  position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: linear-gradient(90deg, var(--orange), var(--red));
+  transform: scaleX(0); transform-origin: left;
+  opacity: 0; transition: opacity 0.4s;
+}
+.nav--scrolled .nav__progress { opacity: 1; }
+
 /* scrolled: compact cream bar */
 .nav--scrolled {
   padding-top: 10px; padding-bottom: 10px;
+  box-shadow: var(--shadow-sm);
   background: rgba(255, 253, 245, 0.94);
   backdrop-filter: saturate(1.4) blur(10px);
   -webkit-backdrop-filter: saturate(1.4) blur(10px);

@@ -1,5 +1,6 @@
 .story {
   background: var(--green); color: var(--cream);
+  border-radius: var(--sec-r);
   padding-top: clamp(64px, 7vw, 110px);
 }
 .story__grid {
@@ -15,7 +16,8 @@
   clip-path: url(#bun-stack);
   background: var(--burgundy);
 }
-.story__photo .img { transform: scale(1.06); transition: transform 1.2s var(--ease); }
+.story__photo .img { transform: scale(1.22); transition: transform 1.6s var(--ease-out-expo); }
+.story__visual.is-in .story__photo .img { transform: scale(1.06); }
 .story__visual:hover .story__photo .img { transform: scale(1.1); }
 
 .story__inset {
@@ -23,6 +25,7 @@
   width: 36%; aspect-ratio: 1; border-radius: 50%; overflow: hidden;
   border: 6px solid var(--green);
   background: var(--burgundy);
+  box-shadow: var(--shadow-lg);
   animation: float 7s ease-in-out infinite; --rot: 6deg;
 }
 .story__caption {

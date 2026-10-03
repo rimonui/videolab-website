@@ -1,4 +1,19 @@
-.promo { background: var(--orange); color: var(--charcoal); overflow: hidden; isolation: isolate; }
+/* The combo is a tear-off coupon: an orange card on cream with ticket notches
+   and a perforation between the offer and the "equation". */
+.promo { background: var(--cream); color: var(--charcoal); padding-block: clamp(56px, 7vw, 96px); }
+.promo__card {
+  position: relative; isolation: isolate; overflow: hidden;
+  background: var(--orange);
+  border-radius: clamp(28px, 3.4vw, 44px);
+  padding: clamp(36px, 5vw, 72px) clamp(24px, 4.4vw, 64px);
+  box-shadow: var(--shadow-md);
+}
+.promo__notch {
+  position: absolute; z-index: 3; left: 50%; width: 44px; height: 44px; margin-left: -22px;
+  border-radius: 50%; background: var(--cream);
+}
+.promo__notch--top { top: -22px; }
+.promo__notch--bottom { bottom: -22px; }
 .promo__bg {
   position: absolute; z-index: -1; left: 0; top: 50%;
   transform: translateY(-50%) rotate(-4deg);
@@ -8,10 +23,15 @@
 }
 
 .promo__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+/* perforation */
+.promo__equation::before {
+  content: ''; position: absolute; left: -24px; top: -200px; bottom: -200px;
+  border-left: 2px dashed rgba(23, 21, 18, 0.28);
+}
 
 .promo__kicker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
 .promo__kicker .tag--outline { color: var(--charcoal); }
-.promo__title { font-size: clamp(52px, 6.6vw, 104px); color: var(--burgundy); }
+.promo__title { font-size: clamp(46px, 5.4vw, 88px); color: var(--burgundy); }
 .promo__text { margin-top: 24px; font-size: 18px; max-width: 34ch; font-weight: 500; }
 
 .promo__buy { display: flex; align-items: center; flex-wrap: wrap; gap: 28px; margin-top: 40px; }
@@ -51,7 +71,7 @@
   font-family: var(--font-display); font-weight: 900; font-size: 30px; line-height: 1;
 }
 .promo__burst {
-  position: absolute; top: -10px; right: 0;
+  position: absolute; top: auto; bottom: -18px; right: 2%;
   width: clamp(110px, 10vw, 150px); aspect-ratio: 1;
   font-size: clamp(20px, 2vw, 28px);
   --burst-bg: var(--red); --burst-fg: var(--cream);
@@ -62,14 +82,16 @@
 @media (max-width: 960px) {
   .promo__grid { grid-template-columns: minmax(0, 1fr); }
   .promo__equation { order: -1; padding: 20px 0 40px; }
+  .promo__equation::before, .promo__notch { display: none; }
 }
 @media (max-width: 560px) {
-  .promo__disc { width: 104px; box-shadow: 4px 4px 0 var(--charcoal); border-width: 2px; }
-  .promo__part--0 .promo__disc { width: 132px; }
+  .promo__disc { width: 84px; box-shadow: 3px 3px 0 var(--charcoal); border-width: 2px; }
+  .promo__part--0 .promo__disc { width: 108px; }
+  .promo__card { padding-inline: 18px; }
   .promo__part--1 { margin-top: 60px; }
   .promo__part--2 { margin-top: -40px; }
   .promo__op { width: 36px; height: 36px; font-size: 20px; margin: 0 -8px; }
-  .promo__burst { width: 92px; font-size: 16px; right: -2%; top: -8px; }
+  .promo__burst { width: 78px; font-size: 13px; right: -4px; bottom: -14px; }
   .promo__part-label { font-size: 10px; }
   .promo__buy .btn { width: 100%; }
 }

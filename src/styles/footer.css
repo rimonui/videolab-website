@@ -1,4 +1,9 @@
-.footer { background: var(--burgundy); color: var(--cream); padding: 88px var(--gutter) 28px; overflow: hidden; }
+.footer {
+  position: relative; z-index: 1;
+  background: var(--burgundy); color: var(--cream); overflow: hidden;
+  margin-top: calc(-1 * var(--sec-r));
+  padding: calc(88px + var(--sec-r)) var(--gutter) 28px;
+}
 .footer__top { display: grid; grid-template-columns: 1fr 2fr; gap: 48px; padding-bottom: 56px; border-bottom: 1px solid var(--line-cream); }
 .footer__brand .logo { --mark-bun: var(--burgundy); }
 .footer__brand p { margin-top: 18px; font-size: 15px; color: rgba(255, 247, 221, 0.7); }

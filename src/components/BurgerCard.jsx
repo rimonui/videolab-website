@@ -1,12 +1,12 @@
 import { products, formatPrice } from '../data/menu.js';
-import { useCart } from './CartContext.jsx';
+import { useAdd } from './useAdd.js';
 import Img from './Img.jsx';
-import { Plus } from './ui.jsx';
+import { Plus, Check } from './ui.jsx';
 
 /* One signature burger. `variant` changes composition, not content:
    feature · tall · default · dark · wide */
 export default function BurgerCard({ id, num, tag, variant = 'default', note, delay = 0 }) {
-  const { add } = useCart();
+  const [added, onAdd] = useAdd(id);
   const p = products[id];
   const tagClass = variant === 'dark' ? 'tag' : variant === 'wide' ? 'tag tag--orange' : 'tag';
 
@@ -28,8 +28,8 @@ export default function BurgerCard({ id, num, tag, variant = 'default', note, de
         {note && <p className="bcard__note">{note}</p>}
         <div className="bcard__foot">
           <span className="bcard__price">{formatPrice(p.price)}</span>
-          <button className="btn btn--sm bcard__add" onClick={() => add(id)} aria-label={`Add ${p.name} to order`}>
-            Add to order <Plus />
+          <button className={`btn btn--sm bcard__add ${added ? 'is-added' : ''}`} onClick={onAdd} aria-label={`Add ${p.name} to order`}>
+            {added ? <>Added <Check /></> : <>Add to order <Plus /></>}
           </button>
         </div>
       </div>

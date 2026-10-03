@@ -16,8 +16,11 @@ export default function PromoBanner() {
 
   return (
     <section className="promo section" id="combo" aria-labelledby="promo-title">
+      <div className="container promo__card" data-reveal>
       <span className="promo__bg display" aria-hidden="true">Combo Combo Combo</span>
-      <div className="container promo__grid">
+      <span className="promo__notch promo__notch--top" aria-hidden="true" />
+      <span className="promo__notch promo__notch--bottom" aria-hidden="true" />
+      <div className="promo__grid">
         <div className="promo__copy">
           <p className="promo__kicker" data-reveal>
             <span className="tag tag--outline">07 — Lunch deal</span>
@@ -53,6 +56,7 @@ export default function PromoBanner() {
           ))}
           <Burst className="promo__burst" points={16}>Save<br />$6</Burst>
         </div>
+      </div>
       </div>
     </section>
   );

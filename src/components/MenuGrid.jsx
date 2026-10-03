@@ -1,13 +1,13 @@
 import { products, menuHighlights, menuByCategory, menuTabs, formatPrice } from '../data/menu.js';
-import { useCart } from './CartContext.jsx';
 import Img from './Img.jsx';
-import { Arrow, Plus, SectionMeta } from './ui.jsx';
+import { Arrow, Plus, Check, SectionMeta } from './ui.jsx';
+import { useAdd } from './useAdd.js';
 import '../styles/menu.css';
 
 const labels = { burgers: 'Burger', fries: 'Fries', sides: 'Side', shakes: 'Shake', drinks: 'Drink' };
 
 function MenuItem({ id, size, index }) {
-  const { add } = useCart();
+  const [added, onAdd] = useAdd(id);
   const p = products[id];
   const isChicken = id === 'chicken';
   return (
@@ -24,8 +24,8 @@ function MenuItem({ id, size, index }) {
           <h3 className="mitem__name display">{p.name}</h3>
           <p className="mitem__desc">{p.desc}</p>
         </div>
-        <button className="add-btn" onClick={() => add(id)} aria-label={`Add ${p.name} to order`}>
-          <Plus />
+        <button className={`add-btn ${added ? 'is-added' : ''}`} onClick={onAdd} aria-label={`Add ${p.name} to order`}>
+          {added ? <Check /> : <Plus />}
         </button>
       </div>
     </article>

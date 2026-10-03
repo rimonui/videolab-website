@@ -1,11 +1,11 @@
 import { PHOTO, products, formatPrice } from '../data/menu.js';
-import { useCart } from './CartContext.jsx';
+import { useAdd } from './useAdd.js';
 import Img from './Img.jsx';
-import { Arrow, Plus, Burst, TextRing } from './ui.jsx';
+import { Arrow, Plus, Check, Burst, TextRing } from './ui.jsx';
 import '../styles/hero.css';
 
 export default function Hero() {
-  const { add } = useCart();
+  const [added, onAdd] = useAdd('double');
   const hero = products.double;
 
   return (
@@ -17,9 +17,9 @@ export default function Hero() {
           </p>
 
           <h1 id="hero-title" className="hero__title display h-hero" data-speed="-0.08">
-            <span className="line">Stacked</span>
-            <span className="line">to stand</span>
-            <span className="line">out<span className="hero__dot">.</span></span>
+            <span className="line"><span>Stacked</span></span>
+            <span className="line"><span>to stand</span></span>
+            <span className="line"><span>out<span className="hero__dot">.</span></span></span>
           </h1>
 
           <p className="hero__lede lede">
@@ -58,8 +58,8 @@ export default function Hero() {
                 <p className="hero__note-desc">Two patties · double cheddar</p>
               </div>
               <span className="hero__note-price">{formatPrice(hero.price)}</span>
-              <button className="add-btn" onClick={() => add('double')} aria-label={`Add ${hero.name} to order`}>
-                <Plus />
+              <button className={`add-btn ${added ? 'is-added' : ''}`} onClick={onAdd} aria-label={`Add ${hero.name} to order`}>
+                {added ? <Check /> : <Plus />}
               </button>
             </div>
           </div>

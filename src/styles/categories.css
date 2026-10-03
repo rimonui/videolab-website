@@ -20,9 +20,10 @@
   border-radius: var(--r-lg);
   background: var(--bg); color: var(--fg);
   text-decoration: none;
-  transition: transform 0.5s var(--ease), opacity 0.9s var(--ease);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.6s var(--ease-out-expo), box-shadow 0.6s var(--ease-out-expo), opacity 0.9s var(--ease);
 }
-.ccard.is-in:hover { transform: translateY(-6px) rotate(-0.4deg); }
+.ccard.is-in:hover { transform: translateY(-8px) rotate(-0.5deg); box-shadow: var(--shadow-md); }
 
 .ccard--burgundy { --bg: var(--burgundy); --fg: var(--cream); --accent: var(--orange); }
 .ccard--orange { --bg: var(--orange); --fg: var(--charcoal); --accent: var(--red); }
@@ -42,7 +43,7 @@
   border-radius: 50%; overflow: hidden;
   transform: translateY(-50%) rotate(-6deg);
   transition: transform 0.9s var(--ease);
-  box-shadow: 0 30px 50px -25px rgba(23, 21, 18, 0.55);
+  box-shadow: var(--shadow-lg);
 }
 .ccard:hover .ccard__media { transform: translateY(-54%) rotate(4deg) scale(1.06); }
 .ccard--burgers .ccard__media { width: 92%; right: -18%; top: 46%; }

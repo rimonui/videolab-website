@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCart } from './CartContext.jsx';
 import { navLinks, formatPrice } from '../data/menu.js';
 import { Logo, Bag, Arrow } from './ui.jsx';
@@ -9,11 +9,14 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [pastHero, setPastHero] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const progress = useRef(null);
 
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 40);
       setPastHero(window.scrollY > window.innerHeight * 0.8);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (progress.current) progress.current.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -63,6 +66,7 @@ export default function Navbar() {
             </button>
           </div>
         </div>
+        <span className="nav__progress" ref={progress} aria-hidden="true" />
       </header>
 
       <div id="mobile-menu" className={`mnav ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>

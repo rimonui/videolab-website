@@ -1,0 +1,89 @@
+.visit { background: var(--green); color: var(--cream); overflow: hidden; }
+.visit__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(40px, 6vw, 96px); align-items: start; }
+.visit__info h2 .serif { color: var(--lime); }
+
+.visit__tabs { display: inline-flex; gap: 4px; margin-top: 40px; padding: 4px; border: 1px solid var(--line-cream); border-radius: 999px; }
+.visit__tab {
+  padding: 10px 18px; border-radius: 999px; border: 0; background: transparent;
+  font-size: 13px; font-weight: 600; transition: background-color 0.25s, color 0.25s;
+}
+.visit__tab:hover { background: rgba(255, 247, 221, 0.1); }
+.visit__tab.is-active { background: var(--cream); color: var(--green); }
+
+.visit__card {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+  margin-top: 28px; padding: 28px 0; border-block: 1px solid var(--line-cream);
+  animation: itemIn 0.6s var(--ease) both;
+}
+.visit__k { display: flex; align-items: center; gap: 10px; color: var(--orange); margin-bottom: 14px; }
+.visit__addr {
+  font-style: normal; display: flex; flex-direction: column;
+  font-family: var(--font-display); font-weight: 900; font-stretch: 125%; font-variation-settings: 'wdth' 125;
+  font-size: clamp(20px, 1.8vw, 26px); line-height: 1.05; text-transform: uppercase;
+}
+.visit__phone { display: inline-block; margin-top: 14px; font-size: 15px; text-underline-offset: 4px; }
+.visit__hours > div { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; font-size: 15px; border-bottom: 1px dashed var(--line-cream); }
+.visit__hours dd { font-variant-numeric: tabular-nums; color: rgba(255, 247, 221, 0.85); }
+
+.visit__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+
+/* ---------- map ---------- */
+.visit__side { position: relative; }
+.map {
+  position: relative; aspect-ratio: 4 / 3.2;
+  border-radius: var(--r-lg); overflow: hidden;
+  background: var(--cream);
+  box-shadow: 0 40px 70px -40px rgba(0, 0, 0, 0.6);
+}
+.map__art { width: 100%; height: 100%; display: block; }
+.map__pin {
+  position: absolute; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  transition: left 0.8s var(--ease), top 0.8s var(--ease);
+  --mark-bg: var(--red); --mark-bun: var(--orange); --mark-patty: var(--cream);
+}
+.map__pin .logo-mark { position: relative; z-index: 1; filter: drop-shadow(0 8px 10px rgba(77, 8, 5, 0.35)); }
+.map__pulse {
+  position: absolute; top: 0; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--red); opacity: 0.4; animation: pulse 2.2s var(--ease) infinite;
+}
+@keyframes pulse { from { transform: scale(1); opacity: 0.45; } to { transform: scale(2.6); opacity: 0; } }
+.map__chip {
+  padding: 6px 12px; border-radius: 999px; background: var(--burgundy); color: var(--cream);
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.map__walk {
+  position: absolute; left: 16px; bottom: 16px;
+  padding: 7px 12px; border-radius: 999px; background: var(--lime); color: var(--green); font-size: 11px;
+}
+
+.visit__burger {
+  position: absolute; left: -9%; top: -8%;
+  width: clamp(120px, 14vw, 200px); aspect-ratio: 1; border-radius: 50%; overflow: hidden;
+  border: 6px solid var(--green); background: var(--burgundy);
+}
+
+.faq { margin-top: 28px; border-top: 1px solid var(--line-cream); }
+.faq__title { color: var(--lime); padding: 18px 0 6px; }
+.faq details { border-bottom: 1px solid var(--line-cream); }
+.faq summary {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 16px 0; cursor: pointer; list-style: none; font-weight: 600; font-size: 16px;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary span { font-size: 22px; line-height: 1; transition: transform 0.35s var(--ease); color: var(--orange); }
+.faq details[open] summary span { transform: rotate(45deg); }
+.faq details p { padding: 0 0 18px; color: rgba(255, 247, 221, 0.78); max-width: 52ch; font-size: 15px; }
+
+@media (max-width: 960px) {
+  .visit__grid { grid-template-columns: 1fr; }
+  .visit__burger { left: auto; right: -4%; top: -10%; }
+}
+@media (max-width: 560px) {
+  .visit__card { grid-template-columns: 1fr; gap: 24px; }
+  .visit__tabs { display: flex; }
+  .visit__tab { flex: 1; padding: 10px 8px; }
+  .visit__ctas .btn { flex: 1 1 100%; }
+  .visit__burger { width: 104px; border-width: 4px; }
+  .map { aspect-ratio: 4 / 3.6; }
+}

@@ -1,0 +1,75 @@
+.promo { background: var(--orange); color: var(--charcoal); overflow: hidden; isolation: isolate; }
+.promo__bg {
+  position: absolute; z-index: -1; left: 0; top: 50%;
+  transform: translateY(-50%) rotate(-4deg);
+  white-space: nowrap; font-size: clamp(160px, 22vw, 340px); line-height: 1;
+  color: transparent; -webkit-text-stroke: 1.5px rgba(23, 21, 18, 0.12);
+  pointer-events: none;
+}
+
+.promo__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+
+.promo__kicker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+.promo__kicker .tag--outline { color: var(--charcoal); }
+.promo__title { font-size: clamp(52px, 6.6vw, 104px); color: var(--burgundy); }
+.promo__text { margin-top: 24px; font-size: 18px; max-width: 34ch; font-weight: 500; }
+
+.promo__buy { display: flex; align-items: center; flex-wrap: wrap; gap: 28px; margin-top: 40px; }
+.promo__price { display: flex; align-items: flex-start; gap: 10px; }
+.promo__price s { font-size: 20px; font-weight: 600; opacity: 0.6; margin-top: 8px; }
+.promo__price span {
+  font-family: var(--font-display); font-weight: 900; font-stretch: 125%;
+  font-variation-settings: 'wdth' 125; font-size: clamp(56px, 6vw, 84px); line-height: 0.85; color: var(--red);
+}
+
+/* burger + fries + drink */
+.promo__equation { position: relative; display: flex; align-items: center; justify-content: center; padding: 40px 0; }
+.promo__part { position: relative; display: flex; align-items: center; }
+.promo__disc {
+  width: clamp(110px, 11vw, 172px); aspect-ratio: 1; border-radius: 50%; overflow: hidden;
+  border: 3px solid var(--charcoal);
+  background: var(--burgundy);
+  box-shadow: 6px 6px 0 var(--charcoal);
+  transition: transform 0.6s var(--ease-bounce);
+}
+.promo__disc .img { transform: scale(1.12); }
+.promo__part:hover .promo__disc { transform: rotate(-6deg) scale(1.04); }
+.promo__part--0 .promo__disc { width: clamp(150px, 16vw, 240px); }
+.promo__part--1 { margin-top: 90px; }
+.promo__part--2 { margin-top: -60px; }
+
+.promo__part-label {
+  position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%) rotate(-4deg);
+  padding: 6px 12px; border-radius: 999px; background: var(--cream); border: 2px solid var(--charcoal);
+  font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+}
+.promo__part--1 .promo__part-label { transform: translateX(-50%) rotate(5deg); }
+.promo__op {
+  margin: 0 -6px; position: relative; z-index: 2;
+  display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%;
+  background: var(--charcoal); color: var(--lime);
+  font-family: var(--font-display); font-weight: 900; font-size: 30px; line-height: 1;
+}
+.promo__burst {
+  position: absolute; top: -10px; right: 0;
+  width: clamp(110px, 10vw, 150px); aspect-ratio: 1;
+  font-size: clamp(20px, 2vw, 28px);
+  --burst-bg: var(--red); --burst-fg: var(--cream);
+  animation: spin 24s linear infinite;
+}
+.promo__burst .burst__text { animation: spin 24s linear infinite reverse; }
+
+@media (max-width: 960px) {
+  .promo__grid { grid-template-columns: minmax(0, 1fr); }
+  .promo__equation { order: -1; padding: 20px 0 40px; }
+}
+@media (max-width: 560px) {
+  .promo__disc { width: 104px; box-shadow: 4px 4px 0 var(--charcoal); border-width: 2px; }
+  .promo__part--0 .promo__disc { width: 132px; }
+  .promo__part--1 { margin-top: 60px; }
+  .promo__part--2 { margin-top: -40px; }
+  .promo__op { width: 36px; height: 36px; font-size: 20px; margin: 0 -8px; }
+  .promo__burst { width: 92px; font-size: 16px; right: -2%; top: -8px; }
+  .promo__part-label { font-size: 10px; }
+  .promo__buy .btn { width: 100%; }
+}

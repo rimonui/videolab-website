@@ -1,0 +1,19 @@
+.marquee {
+  position: relative; z-index: 5;
+  margin: -34px -2% 0; width: 104%;
+  background: var(--orange); color: var(--charcoal);
+  transform: rotate(-2deg);
+  border-block: 2px solid var(--charcoal);
+  overflow: hidden;
+}
+.marquee__track { display: flex; width: max-content; animation: marquee 32s linear infinite; }
+.marquee:hover .marquee__track { animation-play-state: paused; }
+.marquee__row { display: flex; flex-shrink: 0; }
+.marquee__item {
+  display: inline-flex; align-items: center; gap: 28px; padding: 16px 0 14px 28px;
+  font-family: var(--font-display); font-weight: 900; font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  font-size: clamp(20px, 2.4vw, 32px); text-transform: uppercase; line-height: 1; white-space: nowrap;
+}
+.marquee__star { color: var(--red); font-family: var(--font-body); font-size: 0.8em; }
+@keyframes marquee { to { transform: translateX(-50%); } }

@@ -1,0 +1,51 @@
+.ingr { background: var(--burgundy); color: var(--cream); overflow: hidden; }
+.ingr__head {
+  display: grid; grid-template-columns: 1.2fr minmax(0, 460px); gap: 48px; align-items: end;
+  margin-bottom: clamp(56px, 7vw, 100px);
+}
+.ingr__head .serif { color: var(--orange); }
+
+.ingr__spec { border: 1px solid var(--line-cream); border-radius: var(--r-md); padding: 24px 26px 12px; }
+.ingr__spec-title { color: var(--lime); margin-bottom: 12px; }
+.ingr__row { display: flex; align-items: baseline; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line-cream); }
+.ingr__row dt { font-weight: 700; font-size: 14px; }
+.ingr__row dd { font-size: 14px; color: rgba(255, 247, 221, 0.78); text-align: right; }
+.ingr__leader { flex: 1; border-bottom: 1px dotted rgba(255, 247, 221, 0.35); transform: translateY(-4px); }
+
+/* five-up staggered spread */
+.ingr__grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(14px, 1.6vw, 24px); align-items: start; }
+.icard:nth-child(even) { margin-top: 72px; }
+
+.icard__media { position: relative; aspect-ratio: 3 / 4; border-radius: var(--r-md); }
+.icard__media .img { transition: transform 1s var(--ease); }
+.icard:hover .icard__media .img { transform: scale(1.06); }
+.icard__label {
+  position: absolute; left: 12px; bottom: 14px;
+  padding: 7px 12px; border-radius: 999px;
+  background: var(--lime); color: var(--green);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  transform: rotate(var(--rot));
+  transition: transform 0.5s var(--ease-bounce);
+}
+.icard:hover .icard__label { transform: rotate(0deg) translateY(-4px); }
+
+.icard__body { padding: 20px 2px 0; border-top: 1px solid var(--line-cream); margin-top: 18px; }
+.icard__num { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: var(--orange); }
+.icard__title { margin-top: 8px; font-size: clamp(20px, 1.7vw, 26px); line-height: 0.95; }
+.icard__note { margin-top: 12px; font-size: 14px; line-height: 1.5; color: rgba(255, 247, 221, 0.72); }
+
+@media (max-width: 1100px) {
+  .ingr__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .icard:nth-child(even) { margin-top: 0; }
+  .icard:nth-child(3n + 2) { margin-top: 56px; }
+}
+@media (max-width: 860px) {
+  .ingr__head { grid-template-columns: 1fr; }
+  .ingr__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .icard:nth-child(3n + 2) { margin-top: 0; }
+  .icard:nth-child(even) { margin-top: 48px; }
+}
+@media (max-width: 480px) {
+  .icard__note { font-size: 13px; }
+  .ingr__spec { padding: 20px 18px 8px; }
+}

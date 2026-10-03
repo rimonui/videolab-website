@@ -1,0 +1,42 @@
+.final { background: var(--red); color: var(--cream); overflow: hidden; padding-block: clamp(110px, 12vw, 180px); }
+.final__inner { position: relative; }
+.final__eyebrow { color: var(--orange); margin-bottom: 28px; }
+.final__title { position: relative; z-index: 1; font-size: clamp(48px, 8vw, 124px); line-height: 0.88; }
+.final__indent { padding-left: 1.2em; color: var(--orange); }
+.final__indent2 { padding-left: 2.2em; }
+.final__title .serif { color: var(--lime); }
+
+.final__visual {
+  position: absolute; z-index: 2; right: 2%; top: 30%;
+  width: clamp(240px, 27vw, 380px); aspect-ratio: 1;
+}
+.final__ring { position: absolute; inset: -8%; width: 116%; height: 116%; color: rgba(255, 247, 221, 0.6); animation: spin 36s linear infinite; }
+.final__burger {
+  position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
+  background: var(--burgundy);
+  box-shadow: 0 40px 80px -30px rgba(23, 21, 18, 0.7);
+  animation: float 6s ease-in-out infinite; --rot: -4deg;
+}
+.final__burger .img { transform: scale(1.15); }
+
+.final__cta { position: relative; z-index: 3; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; margin-top: 56px; }
+.final__btn { min-height: 76px; padding: 0 44px; font-size: 18px; }
+.final__copy { font-family: var(--font-serif); font-style: italic; font-size: 26px; line-height: 1.1; color: rgba(255, 247, 221, 0.85); }
+
+.final__burst {
+  position: absolute; z-index: 3; right: 1%; top: 20%;
+  width: 128px; aspect-ratio: 1; font-size: 15px;
+  --burst-bg: var(--orange); --burst-fg: var(--charcoal);
+  animation: float 5s ease-in-out infinite; --rot: 10deg;
+}
+
+@media (max-width: 960px) {
+  .final__visual { position: relative; top: auto; right: auto; margin: -40px 0 0 auto; width: min(64vw, 360px); }
+  .final__burst { right: auto; left: 0; bottom: auto; top: -60px; width: 100px; font-size: 12px; }
+  .final__indent, .final__indent2 { padding-left: 0.5em; }
+}
+@media (max-width: 560px) {
+  .final__btn { width: 100%; }
+  .final__visual { margin-top: -10px; }
+  .final__burst { display: none; }
+}

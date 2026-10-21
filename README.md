@@ -32,3 +32,11 @@ src/
 - **Shape:** 20–28px radii, pill buttons, 1px hairlines, sticker badges
 
 Photography is hot-linked from Unsplash; swap the ids in `PHOTO` (src/data/menu.js) for brand shoots.
+
+## Gr8r pendulum reel (`gr8r-reel/`)
+
+A 9:16 social reel for Gr8r Studio: a swinging red "8" wipes through each headline, then lifts into the **gr8r** wordmark.
+
+- `gr8r-reel/index.html` — the animation (open in a browser; tap to pause). Fonts: Funnel Display. Red `#FC3508`.
+- `gr8r-reel/gr8r-reel.mp4` — 1080×1920, 30fps, 17.5s export.
+- `node gr8r-reel/render.mjs` — re-export the MP4 (needs Playwright + ffmpeg).

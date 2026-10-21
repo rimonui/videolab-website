@@ -1,0 +1,353 @@
+<title>Gr8r Pendulum Reel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@500;600;700;800&display=swap">
+<style>
+  /* Layout: one 9:16 stage (1080x1920 SVG) centred on a quiet surround, controls underneath.
+     Single fixed look by design: the reel is a piece of video, so it ignores the viewer theme. */
+  :root {
+    --paper: #F6F6F4;      /* stage ground */
+    --ink: #111214;        /* type, string, the 8 */
+    --accent: #FC3508;     /* Gr8r red, sampled from the logo */
+    --muted: #8D93A3;      /* small labels */
+    --surround: #DCDED8;   /* page around the stage */
+    --display: "Funnel Display", "Arial Black", system-ui, sans-serif;
+    color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--surround); color: var(--ink); font-family: var(--display);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    padding-block: 16px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
+  }
+  .stage {
+    width: min(100%, calc((100dvh - 110px) * 9 / 16));
+    aspect-ratio: 9 / 16; max-width: 100%;
+    background: var(--paper); border-radius: 18px; overflow: hidden;
+    box-shadow: 0 1px 2px rgb(17 18 20 / .08), 0 18px 50px -20px rgb(17 18 20 / .35);
+    cursor: pointer;
+  }
+  .stage svg { display: block; width: 100%; height: 100%; }
+  .bar { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #4a4e58; }
+  .bar button {
+    font: 600 14px var(--display); color: var(--paper); background: var(--ink);
+    border: 0; border-radius: 999px; padding: 9px 16px; cursor: pointer;
+  }
+  .bar button.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .bar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .bar output { font-variant-numeric: tabular-nums; min-width: 4.5ch; }
+  /* Frame-export mode used by render.mjs */
+  body.render { padding: 0; display: block; background: var(--paper); }
+  body.render .stage { width: 1080px; height: 1920px; border-radius: 0; box-shadow: none; }
+  body.render .bar { display: none; }
+</style>
+
+<div class="stage" id="stage" role="img" aria-label="Animated reel: a swinging figure-8 wipes through the lines Need a website, Let's talk, SaaS UI/UX, AI-native products, SaaS websites, then becomes the 8 in the gr8r logo.">
+  <svg id="svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="clipOld"><polygon id="polyOld" points=""/></clipPath>
+      <clipPath id="clipNew"><polygon id="polyNew" points=""/></clipPath>
+    </defs>
+    <rect width="1080" height="1920" fill="#F6F6F4"/>
+
+    <g id="phrases">
+      <g clip-path="url(#clipOld)"><text id="txtOld" text-anchor="middle"></text></g>
+      <g clip-path="url(#clipNew)"><text id="txtNew" text-anchor="middle"></text></g>
+    </g>
+
+    <g id="wordmark" font-family="Funnel Display, Arial Black, sans-serif" font-weight="800" fill="#FC3508">
+      <text id="lG">g</text><text id="lR1">r</text><text id="lR2">r</text>
+    </g>
+    <g id="studio" opacity="0">
+      <line id="ruleL" stroke="#111214" stroke-width="5"/>
+      <line id="ruleR" stroke="#111214" stroke-width="5"/>
+      <text id="studioTxt" x="540" text-anchor="middle" font-family="Funnel Display, sans-serif" font-weight="600" font-size="42" fill="#111214">STUDIO</text>
+    </g>
+    <text id="services" x="540" text-anchor="middle" font-family="Funnel Display, sans-serif" font-weight="600" font-size="34" letter-spacing="3" fill="#8D93A3" opacity="0">UI/UX · SAAS · AI PRODUCTS</text>
+    <text id="tagline" text-anchor="middle" font-family="Funnel Display, sans-serif" font-weight="700" font-size="66" letter-spacing="-1" fill="#111214" opacity="0"><tspan id="tag1" x="540">The design partner for</tspan><tspan id="tag2" x="540" dy="76">AI-first SaaS founders</tspan></text>
+    <g id="cta" opacity="0">
+      <rect id="ctaRect" x="170" width="740" height="128" rx="64" fill="#FC3508"/>
+      <text id="ctaTxt" x="540" text-anchor="middle" font-family="Funnel Display, sans-serif" font-weight="700" font-size="44" letter-spacing="5" fill="#FFFFFF">GRAB A FREE CALL ↗</text>
+    </g>
+    <text id="url" x="540" y="1760" text-anchor="middle" font-family="Funnel Display, sans-serif" font-weight="600" font-size="38" fill="#111214" opacity="0">gr8rstudio.com</text>
+    <text id="badge" x="540" y="1790" text-anchor="middle" font-family="Funnel Display, sans-serif" font-weight="700" font-size="32" letter-spacing="8" fill="#111214">GR8R STUDIO</text>
+
+    <line id="string" stroke="#111214" stroke-width="6" stroke-linecap="round"/>
+
+    <!-- The 8: attach point at (90,0). Top ring holds the eyes. -->
+    <g id="bob">
+      <g id="bobInner" transform="translate(-90 0)">
+        <circle cx="90" cy="68" r="48" fill="none" stroke="#FC3508" stroke-width="40"/>
+        <circle cx="90" cy="190" r="64" fill="none" stroke="#FC3508" stroke-width="44"/>
+        <g id="eyes" transform="translate(90 66)">
+          <g id="eyesMove">
+            <ellipse cx="-11" cy="0" rx="6.5" ry="8" fill="#111214"/>
+            <ellipse cx="11" cy="0" rx="6.5" ry="8" fill="#111214"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<div class="bar">
+  <button id="play" type="button">Pause</button>
+  <button id="replay" class="ghost" type="button">Replay</button>
+  <output id="clock">0.0s</output>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const INK = "#111214", ACCENT = "#FC3508";
+
+  // ---- Timeline ----
+  const PX = 540, PY = -600, L = 1720, A = 21 * Math.PI / 180;
+  const T = 1.25, T0 = 0.35;               // half-swing length, start delay
+  const PHRASES = [
+    { lines: ["NEED A", "WEBSITE?"], c: INK },
+    { lines: ["LET'S", "TALK!"], c: ACCENT },
+    { lines: ["SaaS", "UI/UX"], c: INK },
+    { lines: ["LET'S", "TALK!"], c: ACCENT },
+    { lines: ["AI-native", "Products"], c: INK },
+    { lines: ["LET'S", "TALK!"], c: ACCENT },
+    { lines: ["SaaS", "Websites"], c: INK },
+    { lines: ["LET'S", "TALK!"], c: ACCENT },
+    { lines: ["Let's go", "gr<8>r."], c: INK },
+  ];
+  const N = PHRASES.length - 1;
+  const SW_END = T0 + N * T;               // swings done
+  const SETTLE = SW_END + 1.5;             // pendulum comes to rest
+  const RISE = SETTLE + 0.75;              // 8 has lifted into the logo
+  const DURATION = 17.5;
+
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const prog = (t, a, b) => clamp((t - a) / (b - a));
+  const lerp = (a, b, u) => a + (b - a) * u;
+  const easeInOut = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+  const easeOut = u => 1 - Math.pow(1 - u, 3);
+  const easeIn = u => u * u * u;
+  const bounce = u => {
+    const n = 7.5625, d = 2.75;
+    if (u < 1 / d) return n * u * u;
+    if (u < 2 / d) return n * (u -= 1.5 / d) * u + .75;
+    if (u < 2.5 / d) return n * (u -= 2.25 / d) * u + .9375;
+    return n * (u -= 2.625 / d) * u + .984375;
+  };
+
+  // ---- Phrase text ----
+  const BASE = 165, MAXW = 800, CY = 740;
+  const fits = [];
+  function setPhrase(el, i) {
+    const p = PHRASES[i];
+    let f = fits[i] || BASE;
+    el.setAttribute("font-family", "Funnel Display, Arial Black, sans-serif");
+    el.setAttribute("font-weight", "800");
+    el.setAttribute("font-size", f);
+    el.setAttribute("fill", p.c);
+    el.setAttribute("letter-spacing", "-2");
+    const y1 = CY - 0.12 * f;
+    el.innerHTML = p.lines.map((ln, k) => {
+      const html = ln.replace("<8>", `<tspan fill="${ACCENT}">8</tspan>`);
+      return `<tspan x="540" y="${(y1 + k * 0.95 * f).toFixed(1)}">${html}</tspan>`;
+    }).join("");
+  }
+  function measureFits() {
+    const el = $("txtOld");
+    PHRASES.forEach((p, i) => {
+      fits[i] = BASE; setPhrase(el, i);
+      const w = Math.max(...[...el.children].map(t => t.getComputedTextLength()));
+      fits[i] = Math.min(BASE, Math.floor(BASE * MAXW / w));
+    });
+  }
+
+  // ---- Wordmark layout (G R [8] R) ----
+  const WM = { s: 1.08, top: 600, gap: 16 };
+  function layoutWordmark() {
+    const h8 = 276 * WM.s, w8 = 172 * WM.s;
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.font = `800 100px "Funnel Display"`;
+    const cap = ctx.measureText("H").actualBoundingBoxAscent / 100;
+    const fs = h8 / cap;
+    ctx.font = `800 ${fs}px "Funnel Display"`;
+    const m = ch => { const r = ctx.measureText(ch); return { w: r.actualBoundingBoxRight + r.actualBoundingBoxLeft, l: r.actualBoundingBoxLeft }; };
+    const g = m("g"), r = m("r");
+    const total = g.w + r.w + w8 + r.w + WM.gap * 3;
+    let x = 540 - total / 2;
+    const base = WM.top + h8;
+    WM.letters = [];
+    for (const [id, mm] of [["lG", g], ["lR1", r], ["8", null], ["lR2", r]]) {
+      if (id === "8") { WM.x8 = x + w8 / 2; x += w8 + WM.gap; continue; }
+      const el = $(id);
+      el.setAttribute("font-size", fs.toFixed(1));
+      el.setAttribute("x", (x + mm.l).toFixed(1));
+      WM.letters.push({ el, base, cx: x + mm.w / 2 });
+      x += mm.w + WM.gap;
+    }
+    WM.base = base;
+    const sy = base + 0.22 * fs + 90;
+    $("studioTxt").setAttribute("y", sy);
+    $("services").setAttribute("y", sy + 90);
+    $("tag1").setAttribute("y", sy + 270);
+    $("ctaRect").setAttribute("y", sy + 420); $("ctaTxt").setAttribute("y", sy + 420 + 80);
+    WM.studioY = sy;
+  }
+
+  // ---- Frame ----
+  function linePoly(theta, side) {
+    // points of the string line extended across the stage, then the chosen side
+    const tan = Math.tan(theta);
+    const x0 = PX + (0 - PY) * tan, x1 = PX + (1920 - PY) * tan;
+    return side < 0
+      ? `-10,-10 ${x0},-10 ${x1},1930 -10,1930`
+      : `${x0},-10 1090,-10 1090,1930 ${x1},1930`;
+  }
+  const show = (id, o, dy = 0) => {
+    const el = $(id); el.setAttribute("opacity", o.toFixed(3));
+    el.setAttribute("transform", `translate(0 ${dy.toFixed(1)})`);
+  };
+
+  let lastPair = "";
+  function render(t) {
+    // pendulum angle
+    let theta, vel;
+    if (t < T0) { theta = -A; vel = 1; }
+    else if (t < SW_END) {
+      const u = (t - T0) / T;
+      theta = -A * Math.cos(Math.PI * u);
+      vel = Math.sin(Math.PI * u) >= 0 ? 1 : -1;
+      vel = (Math.floor(u) % 2 === 0) ? 1 : -1;
+    } else {
+      const u = t - SW_END;
+      const k = 1 - easeInOut(prog(t, SW_END, SETTLE));
+      theta = -A * Math.exp(-2.4 * u) * Math.cos(Math.PI * u / T) * k;
+      vel = Math.sin(Math.PI * u / T) >= 0 ? 1 : -1;
+    }
+
+    // phrases + wipe
+    let kPass = t < T0 ? 0 : Math.min(N - 1, Math.floor((t - T0) / T));
+    let oldI = kPass, newI = kPass + 1, dir = kPass % 2 === 0 ? -1 : 1;
+    if (t < T0) { oldI = 0; newI = 0; }
+    if (t >= SW_END) { oldI = N; newI = N; }
+    const pair = oldI + ":" + newI;
+    if (pair !== lastPair) { setPhrase($("txtOld"), oldI); setPhrase($("txtNew"), newI); lastPair = pair; }
+    // moving L->R (dir -1): new text sits left of the string; R->L: right of it
+    $("polyNew").setAttribute("points", linePoly(theta, dir));
+    $("polyOld").setAttribute("points", linePoly(theta, -dir));
+    const out = prog(t, SETTLE - 0.5, SETTLE + 0.1);
+    show("phrases", 1 - easeIn(out), -60 * easeIn(out));
+    show("badge", 1 - prog(t, SETTLE - 0.6, SETTLE - 0.1));
+
+    // bob + string
+    let ax = PX + L * Math.sin(theta), ay = PY + L * Math.cos(theta), sc = 1, rot = theta;
+    let sx = PX, sy = PY, ex = ax, ey = ay;
+    if (t >= SETTLE) {
+      const u = easeInOut(prog(t, SETTLE, RISE));
+      ax = lerp(PX, WM.x8, u); ay = lerp(PY + L, WM.top, u); sc = lerp(1, WM.s, u); rot = 0;
+      sx = ax; sy = PY; ex = ax; ey = ay;
+      const snap = easeIn(prog(t, RISE, RISE + 0.32));
+      ey = lerp(ay, -40, snap); sy = lerp(PY, -700, snap);
+      // little drop when released, then settle
+      const rel = prog(t, RISE, RISE + 0.5);
+      ay += Math.sin(rel * Math.PI) * 26 * (1 - rel);
+      // squash on each letter landing
+      let sq = 0;
+      [0, 1, 2].forEach(i => { const lt = RISE + 0.25 + i * 0.16 + 0.55 * 0.36;
+        const q = prog(t, lt, lt + 0.22); sq += Math.sin(q * Math.PI) * 0.05; });
+      sc *= 1;
+      $("bobInner").setAttribute("transform", `translate(-90 0) translate(90 276) scale(${1 + sq} ${1 - sq}) translate(-90 -276)`);
+    } else {
+      $("bobInner").setAttribute("transform", "translate(-90 0)");
+    }
+    const sEl = $("string");
+    sEl.setAttribute("x1", sx); sEl.setAttribute("y1", sy);
+    sEl.setAttribute("x2", ex); sEl.setAttribute("y2", ey);
+    sEl.setAttribute("opacity", t > RISE + 0.32 ? 0 : 1);
+    $("bob").setAttribute("transform", `translate(${ax.toFixed(2)} ${ay.toFixed(2)}) rotate(${(-rot * 180 / Math.PI).toFixed(3)}) scale(${sc.toFixed(4)})`);
+
+    // eyes: look where it's heading, glance at letters, blink
+    let gx = t < SETTLE ? vel * 5 : 0, gy = t < SETTLE ? 2 : 0;
+    if (t >= RISE) {
+      const look = [[RISE + 0.2, -6], [RISE + 0.38, -6], [RISE + 0.55, 6], [RISE + 1.1, 0]];
+      for (const [at, x] of look) if (t >= at) gx = x;
+      gy = t >= RISE + 1.1 ? 0 : 3;
+    }
+    let blink = 1;
+    for (const b of [2.9, 7.6, SETTLE - 0.2, RISE + 1.6, 15.9]) {
+      const q = prog(t, b, b + 0.18); if (q > 0 && q < 1) blink = Math.min(blink, Math.abs(Math.cos(q * Math.PI)) * .9 + .1);
+    }
+    let wink = t > 16.6 && t < 16.95;
+    $("eyesMove").setAttribute("transform", `translate(${gx} ${gy}) scale(1 ${blink.toFixed(3)})`);
+    $("eyesMove").children[1].setAttribute("ry", wink ? 1.6 : 8);
+
+    // letters drop in
+    WM.letters.forEach((lt, i) => {
+      const st = RISE + 0.25 + i * 0.16;
+      const u = prog(t, st, st + 0.55);
+      const y = lerp(lt.base - 1500, lt.base, bounce(u));
+      lt.el.setAttribute("y", y.toFixed(1));
+      lt.el.setAttribute("opacity", t < st ? 0 : 1);
+    });
+
+    // studio line + services + tagline + url
+    const s1 = easeOut(prog(t, RISE + 1.0, RISE + 1.6));
+    $("studio").setAttribute("opacity", s1.toFixed(3));
+    $("studioTxt").setAttribute("letter-spacing", lerp(2, 18, s1).toFixed(2));
+    const half = lerp(0, 150, s1), y = WM.studioY - 15;
+    $("ruleL").setAttribute("x1", 540 - 150 - 60 - half); $("ruleL").setAttribute("x2", 540 - 150);
+    $("ruleR").setAttribute("x1", 540 + 150); $("ruleR").setAttribute("x2", 540 + 150 + 60 + half);
+    for (const id of ["ruleL", "ruleR"]) { $(id).setAttribute("y1", y); $(id).setAttribute("y2", y); }
+    const sv = easeOut(prog(t, RISE + 1.5, RISE + 2.0));
+    show("services", sv, 30 * (1 - sv));
+    const tg = easeOut(prog(t, RISE + 2.2, RISE + 2.8));
+    show("tagline", tg, 40 * (1 - tg));
+    const ct = easeOut(prog(t, RISE + 2.8, RISE + 3.3));
+    show("cta", ct, 40 * (1 - ct));
+    const ur = easeOut(prog(t, RISE + 3.2, RISE + 3.7));
+    show("url", ur, 20 * (1 - ur));
+  }
+
+  // ---- Playback ----
+  const isRender = location.search.includes("render");
+  if (isRender) document.body.classList.add("render");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let playing = !isRender && !reduce, t = reduce ? DURATION - 0.5 : 0, last = null;
+
+  function loop(now) {
+    if (playing) {
+      if (last != null) t += (now - last) / 1000;
+      if (t > DURATION) t = 0;
+    }
+    last = now;
+    render(t);
+    $("clock").textContent = t.toFixed(1) + "s";
+    requestAnimationFrame(loop);
+  }
+  const toggle = () => { playing = !playing; $("play").textContent = playing ? "Pause" : "Play"; };
+  $("play").addEventListener("click", toggle);
+  $("stage").addEventListener("click", toggle);
+  $("replay").addEventListener("click", () => { t = 0; if (!playing) toggle(); });
+  if (!playing) $("play").textContent = "Play";
+
+  const boot = async () => {
+    try {
+      await Promise.all([
+        document.fonts.load('800 150px "Funnel Display"'),
+        document.fonts.load('700 60px "Funnel Display"'),
+        document.fonts.load('600 40px "Funnel Display"'),
+      ]);
+    } catch (e) {}
+    measureFits(); layoutWordmark(); lastPair = "";
+    render(t);
+    window.__duration = DURATION;
+    window.__seek = s => render(s);
+    window.__ready = true;
+    if (!isRender) requestAnimationFrame(loop);
+  };
+  boot();
+})();
+</script>

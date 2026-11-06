@@ -1120,7 +1120,7 @@ svg { display: block; flex: none; }
   .nav__toggle { display: grid; }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; min-height: 0; }
   .hero__copy { padding: 56px var(--pad) 40px; }
   .hero__title { font-size: clamp(46px, 12.6vw, 72px); }

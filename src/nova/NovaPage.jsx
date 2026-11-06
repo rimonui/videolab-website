@@ -26,7 +26,7 @@ function Navbar() {
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => e.key === 'Escape' && setOpen(false);
-    const onResize = () => window.innerWidth > 980 && setOpen(false);
+    const onResize = () => window.innerWidth > 1080 && setOpen(false);
     window.addEventListener('keydown', onKey);
     window.addEventListener('resize', onResize);
     return () => {

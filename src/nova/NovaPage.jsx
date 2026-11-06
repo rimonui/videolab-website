@@ -11,7 +11,7 @@ const LINKS = [
   { label: 'Pricing', href: '#pricing' },
 ];
 
-function Brand() {
+export function Brand() {
   return (
     <a href="#top" className="brand" aria-label="Nova home">
       <span className="brand__mark"><Spark /></span>
@@ -20,7 +20,7 @@ function Brand() {
   );
 }
 
-function Navbar() {
+export function Navbar() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -127,7 +127,7 @@ function Hero() {
   );
 }
 
-function TrustedBy() {
+export function TrustedBy() {
   return (
     <section className="trust" aria-labelledby="trust-title">
       <p id="trust-title" className="trust__label">Trusted by teams building the future of work.</p>

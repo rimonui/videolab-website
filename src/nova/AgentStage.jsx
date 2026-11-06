@@ -9,12 +9,12 @@ import {
 /* Script content                                                      */
 /* ------------------------------------------------------------------ */
 
-const USER_1 = 'Can you schedule a meeting with our design team for tomorrow at 3 PM?';
-const AGENT_1 = 'Absolutely! I found 4 available team members. Tomorrow at 3:00 PM works for everyone.';
-const USER_2 = 'Great. Also send them the project brief.';
-const AGENT_2 = 'Done! Meeting scheduled and the project brief has been shared with all 4 participants.';
+export const USER_1 = 'Can you schedule a meeting with our design team for tomorrow at 3 PM?';
+export const AGENT_1 = 'Absolutely! I found 4 available team members. Tomorrow at 3:00 PM works for everyone.';
+export const USER_2 = 'Great. Also send them the project brief.';
+export const AGENT_2 = 'Done! Meeting scheduled and the project brief has been shared with all 4 participants.';
 
-const TEAM = [
+export const TEAM = [
   { i: 'MA', name: 'Maya', c: '#FF8B6A' },
   { i: 'JO', name: 'Jonah', c: '#3FB6F2' },
   { i: 'PR', name: 'Priya', c: '#8B6CF6' },
@@ -27,7 +27,7 @@ const TOOLS = [
   { id: 'chat', name: 'Team chat', Mark: ChatMark, busy: 'Posting to #design', done: 'Team notified' },
 ];
 
-const STEPS_1 = ['Found Design team · 4 members', 'Compared calendars for tomorrow', '3:00 PM is free for everyone'];
+export const STEPS_1 = ['Found Design team · 4 members', 'Compared calendars for tomorrow', '3:00 PM is free for everyone'];
 
 /* The finished conversation, shown as-is when motion is reduced. */
 const FINAL = [
@@ -41,16 +41,16 @@ const FINAL = [
   { id: 8, kind: 'agent', words: AGENT_2.split(' '), shown: 99 },
 ];
 
-const IDLE = { mode: 'idle', text: '', words: [], final: 0 };
+export const IDLE = { mode: 'idle', text: '', words: [], final: 0 };
 
-const reducedMotion = () =>
+export const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ------------------------------------------------------------------ */
 /* Pieces                                                              */
 /* ------------------------------------------------------------------ */
 
-function Avatars({ size = 'md' }) {
+export function Avatars({ size = 'md' }) {
   return (
     <span className={`avs avs--${size}`}>
       {TEAM.map((p, i) => (
@@ -60,7 +60,7 @@ function Avatars({ size = 'md' }) {
   );
 }
 
-function Orb({ working, small }) {
+export function Orb({ working, small }) {
   return (
     <span className={`orb${small ? ' orb--sm' : ''}`} data-working={working || undefined}>
       <Spark />
@@ -68,9 +68,14 @@ function Orb({ working, small }) {
   );
 }
 
-function Message({ m }) {
+export function Message({ m }) {
   if (m.kind === 'user') {
-    return <div className="msg msg--user"><p>{m.text}</p></div>;
+    return (
+      <div className="msg msg--user">
+        {m.from && <small className="msg__from">{m.from}</small>}
+        <p>{m.text}</p>
+      </div>
+    );
   }
 
   if (m.kind === 'agent') {
@@ -147,6 +152,161 @@ function Message({ m }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Shared helpers                                                      */
+/* ------------------------------------------------------------------ */
+
+/* Position of an element inside the stage, from layout offsets rather than
+   screen rects, so it stays right when the stage itself is tilted or scaled. */
+export function localPoint(root, sel, ox = 0.5, oy = 0.5) {
+  const el = root && root.querySelector(sel);
+  if (!el || el.offsetParent === null || !el.offsetWidth) return null;
+  let x = 0;
+  let y = 0;
+  let n = el;
+  while (n && n !== root) {
+    x += n.offsetLeft;
+    y += n.offsetTop;
+    const parent = n.offsetParent;
+    for (let s = n.parentElement; s && s !== parent; s = s.parentElement) {
+      x -= s.scrollLeft;
+      y -= s.scrollTop;
+    }
+    n = parent;
+  }
+  if (n !== root) return null;
+  x += el.offsetWidth * ox;
+  y += el.offsetHeight * oy;
+  return { x, y, flip: x > root.clientWidth - 200 };
+}
+
+/* Keep the newest message in view. */
+export function useThreadAutoscroll(threadRef, msgs) {
+  useEffect(() => {
+    const t = threadRef.current;
+    if (!t) return;
+    t.scrollTo({ top: t.scrollHeight, behavior: reducedMotion() ? 'auto' : 'smooth' });
+  }, [threadRef, msgs]);
+}
+
+/* Pointer depth: card tilts, side pieces drift (sets --mx / --my on the stage). */
+export function usePointerDepth(stageRef) {
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || reducedMotion() || !window.matchMedia('(hover: hover)').matches) return undefined;
+    let raf = 0;
+    let nx = 0;
+    let ny = 0;
+    const apply = () => {
+      raf = 0;
+      el.style.setProperty('--mx', nx.toFixed(3));
+      el.style.setProperty('--my', ny.toFixed(3));
+    };
+    const onMove = (e) => {
+      const r = el.getBoundingClientRect();
+      nx = ((e.clientX - r.left) / r.width) * 2 - 1;
+      ny = ((e.clientY - r.top) / r.height) * 2 - 1;
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    const onLeave = () => { nx = 0; ny = 0; if (!raf) raf = requestAnimationFrame(apply); };
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerleave', onLeave);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerleave', onLeave);
+    };
+  }, [stageRef]);
+}
+
+/* The agent's chat card: header, thread, composer. */
+export function ChatCard({ working, msgs, draft, clearing, threadRef, placeholder = 'Ask your AI agent anything...' }) {
+  const voice = draft.mode === 'voice';
+  const hasText = !!draft.text || draft.words.length > 0;
+  return (
+    <div className="chat">
+      <header className="chat__head">
+        <Orb working={working} />
+        <span className="chat__who">
+          <b>Nova Agent</b>
+          <small>
+            <i className="status-dot" data-working={working || undefined} />
+            AI Agent · {working ? 'Working…' : 'Online'}
+          </small>
+        </span>
+        <span className="chat__pill"><i />Autopilot</span>
+        <span className="chat__more"><Dots /></span>
+      </header>
+
+      <div className="thread-wrap">
+        <div className="welcome" data-hidden={msgs.length > 0 || undefined}>
+          <span className="welcome__orb"><Spark /></span>
+          <b>How can I help today?</b>
+          <small>I work across your calendar, files and team chat.</small>
+          <span className="welcome__chips">
+            <span data-active={draft.mode === 'typing' || undefined}><CalendarMark /> Schedule a meeting</span>
+            <span><DriveMark /> Share a file</span>
+            <span><ChatMark /> Update the team</span>
+          </span>
+        </div>
+        <div className="thread" ref={threadRef} data-clearing={clearing || undefined}>
+          <div className="thread__day">Today</div>
+          {msgs.map((m) => <Message key={m.id} m={m} />)}
+        </div>
+      </div>
+
+      <div className="composer" data-mode={draft.mode} data-has-text={hasText || undefined}>
+        <div className="composer__field">
+          {voice ? (
+            <span className="composer__text">
+              {draft.words.map((w, i) => (
+                <span key={i} className="vword" data-final={i < draft.final || undefined}>{w} </span>
+              ))}
+              <span className="caret" />
+            </span>
+          ) : draft.text ? (
+            <span className="composer__text">{draft.text}<span className="caret" /></span>
+          ) : (
+            <span className="composer__ph">{placeholder}</span>
+          )}
+        </div>
+        <div className="composer__bar">
+          <span className="cbtn"><Plus /></span>
+          {voice ? (
+            <span className="listening">
+              <span className="wave"><i /><i /><i /><i /><i /></span>
+              Listening…
+            </span>
+          ) : (
+            <span className="cchip"><Sliders /> Tools</span>
+          )}
+          <span className="composer__gap" />
+          <span className="apps"><CalendarMark /><DriveMark /><ChatMark /></span>
+          <span className="cbtn cbtn--mic" data-on={voice || undefined}><Mic /></span>
+          <span className="send"><ArrowUp /></span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* The agent's pointer with its name flag, and whatever it is carrying. */
+export function AgentCursor({ cursor, carry }) {
+  return (
+    <div
+      className="cursor"
+      data-show={cursor.show || undefined}
+      data-click={cursor.click || undefined}
+      data-flip={cursor.flip || undefined}
+      style={{ '--x': `${cursor.x}px`, '--y': `${cursor.y}px` }}
+    >
+      <Pointer className="cursor__ptr" />
+      <span className="cursor__flag"><Spark /> Nova · {cursor.label}</span>
+      <span className="cursor__carry" data-on={cursor.carry || undefined}>{carry}</span>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Stage                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -181,16 +341,7 @@ export default function AgentStage() {
     const add = (m) => { const id = ++uid; setMsgs((l) => [...l, { id, ...m }]); return id; };
     const patch = (id, p) => setMsgs((l) => l.map((m) => (m.id === id ? { ...m, ...(typeof p === 'function' ? p(m) : p) } : m)));
 
-    const point = (sel, ox = 0.5, oy = 0.5) => {
-      const root = stageRef.current;
-      const el = root && root.querySelector(sel);
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      if (!r.width) return null;
-      const rr = root.getBoundingClientRect();
-      const x = r.left - rr.left + r.width * ox;
-      return { x, y: r.top - rr.top + r.height * oy, flip: x > rr.width - 200 };
-    };
+    const point = (sel, ox, oy) => localPoint(stageRef.current, sel, ox, oy);
     const moveTo = (sel, label, ox, oy) => {
       const p = point(sel, ox, oy);
       setCursor((c) => ({ ...c, ...(p || {}), show: !!p, label: label ?? c.label }));
@@ -330,43 +481,8 @@ export default function AgentStage() {
     };
   }, []);
 
-  /* Keep the newest message in view. */
-  useEffect(() => {
-    const t = threadRef.current;
-    if (!t) return;
-    t.scrollTo({ top: t.scrollHeight, behavior: reducedMotion() ? 'auto' : 'smooth' });
-  }, [msgs]);
-
-  /* Pointer depth: card tilts, tiles drift. */
-  useEffect(() => {
-    const el = stageRef.current;
-    if (!el || reducedMotion() || !window.matchMedia('(hover: hover)').matches) return undefined;
-    let raf = 0;
-    let nx = 0;
-    let ny = 0;
-    const apply = () => {
-      raf = 0;
-      el.style.setProperty('--mx', nx.toFixed(3));
-      el.style.setProperty('--my', ny.toFixed(3));
-    };
-    const onMove = (e) => {
-      const r = el.getBoundingClientRect();
-      nx = ((e.clientX - r.left) / r.width) * 2 - 1;
-      ny = ((e.clientY - r.top) / r.height) * 2 - 1;
-      if (!raf) raf = requestAnimationFrame(apply);
-    };
-    const onLeave = () => { nx = 0; ny = 0; if (!raf) raf = requestAnimationFrame(apply); };
-    el.addEventListener('pointermove', onMove);
-    el.addEventListener('pointerleave', onLeave);
-    return () => {
-      cancelAnimationFrame(raf);
-      el.removeEventListener('pointermove', onMove);
-      el.removeEventListener('pointerleave', onLeave);
-    };
-  }, []);
-
-  const voice = draft.mode === 'voice';
-  const hasText = !!draft.text || draft.words.length > 0;
+  useThreadAutoscroll(threadRef, msgs);
+  usePointerDepth(stageRef);
 
   return (
     <div className="stage" ref={stageRef} data-ready={ready || undefined}>
@@ -393,83 +509,9 @@ export default function AgentStage() {
           );
         })}
 
-        <div className="chat">
-          <header className="chat__head">
-            <Orb working={working} />
-            <span className="chat__who">
-              <b>Nova Agent</b>
-              <small>
-                <i className="status-dot" data-working={working || undefined} />
-                AI Agent · {working ? 'Working…' : 'Online'}
-              </small>
-            </span>
-            <span className="chat__pill"><i />Autopilot</span>
-            <span className="chat__more"><Dots /></span>
-          </header>
+        <ChatCard working={working} msgs={msgs} draft={draft} clearing={clearing} threadRef={threadRef} />
 
-          <div className="thread-wrap">
-            <div className="welcome" data-hidden={msgs.length > 0 || undefined}>
-              <span className="welcome__orb"><Spark /></span>
-              <b>How can I help today?</b>
-              <small>I work across your calendar, files and team chat.</small>
-              <span className="welcome__chips">
-                <span data-active={draft.mode === 'typing' || undefined}><CalendarMark /> Schedule a meeting</span>
-                <span><DriveMark /> Share a file</span>
-                <span><ChatMark /> Update the team</span>
-              </span>
-            </div>
-            <div className="thread" ref={threadRef} data-clearing={clearing || undefined}>
-              <div className="thread__day">Today</div>
-              {msgs.map((m) => <Message key={m.id} m={m} />)}
-            </div>
-          </div>
-
-          <div className="composer" data-mode={draft.mode} data-has-text={hasText || undefined}>
-            <div className="composer__field">
-              {voice ? (
-                <span className="composer__text">
-                  {draft.words.map((w, i) => (
-                    <span key={i} className="vword" data-final={i < draft.final || undefined}>{w} </span>
-                  ))}
-                  <span className="caret" />
-                </span>
-              ) : draft.text ? (
-                <span className="composer__text">{draft.text}<span className="caret" /></span>
-              ) : (
-                <span className="composer__ph">Ask your AI agent anything...</span>
-              )}
-            </div>
-            <div className="composer__bar">
-              <span className="cbtn"><Plus /></span>
-              {voice ? (
-                <span className="listening">
-                  <span className="wave"><i /><i /><i /><i /><i /></span>
-                  Listening…
-                </span>
-              ) : (
-                <span className="cchip"><Sliders /> Tools</span>
-              )}
-              <span className="composer__gap" />
-              <span className="apps"><CalendarMark /><DriveMark /><ChatMark /></span>
-              <span className="cbtn cbtn--mic" data-on={voice || undefined}><Mic /></span>
-              <span className="send"><ArrowUp /></span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="cursor"
-          data-show={cursor.show || undefined}
-          data-click={cursor.click || undefined}
-          data-flip={cursor.flip || undefined}
-          style={{ '--x': `${cursor.x}px`, '--y': `${cursor.y}px` }}
-        >
-          <Pointer className="cursor__ptr" />
-          <span className="cursor__flag"><Spark /> Nova · {cursor.label}</span>
-          <span className="cursor__carry" data-on={cursor.carry || undefined}>
-            <PdfMark /> Project-brief-v3.pdf
-          </span>
-        </div>
+        <AgentCursor cursor={cursor} carry={<><PdfMark /> Project-brief-v3.pdf</>} />
       </div>
     </div>
   );

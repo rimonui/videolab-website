@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         nova: resolve(__dirname, 'nova/index.html'),
+        novaCenter: resolve(__dirname, 'nova-center/index.html'),
       },
     },
   },

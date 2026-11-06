@@ -106,3 +106,17 @@ export const PdfMark = (p) => (
     <text x="15" y="22.3" textAnchor="middle" fontSize="6" fontWeight="800" fill="#fff" fontFamily="Geist Variable, system-ui, sans-serif">PDF</text>
   </svg>
 );
+
+export const MailMark = (p) => (
+  <svg viewBox="0 0 32 32" aria-hidden="true" {...p}>
+    <rect x="3" y="7" width="26" height="19" rx="4" fill="#fff" />
+    <path d="M4.5 9.5l11.5 8.5 11.5-8.5" fill="none" stroke="#EA4C3B" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+export const TicketMark = (p) => (
+  <svg viewBox="0 0 32 32" aria-hidden="true" {...p}>
+    <path d="M5 8h22a2 2 0 0 1 2 2v3a3 3 0 0 0 0 6v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a3 3 0 0 0 0-6v-3a2 2 0 0 1 2-2z" fill="#fff" />
+    <path d="M12 12h9M12 16h7M12 20h8" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);

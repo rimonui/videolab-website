@@ -57,3 +57,21 @@ src/nova/
 - **Motion:** pointer bends the fluid and tilts the card; `prefers-reduced-motion` shows the finished
   conversation as a still and stops the loops. No WebGL → CSS gradient fallback.
 - **Type:** Geist (self-hosted via Fontsource). **Palette:** black `#02040A`, blue `#2F6BFF`, ice `#D4E3FF`.
+
+---
+
+# Nova — centered hero (`/nova-center/`)
+
+Light, centered variant: headline in the middle, and under it a live **work → results** pipeline on the
+blue fluid stage. Incoming requests (Slack, email, tickets) pile up on the left, Nova's chat solves them in the
+middle, finished results stack up on the right with a running "done today" counter. The agent's cursor carries
+each request in and each result out. On narrow screens the columns collapse into a counter bar above the chat.
+
+```
+nova-center/index.html
+src/nova-center/
+  CenterPage.jsx       # page; panel tilts back and settles flat on load/scroll
+  PipelineStage.jsx    # the Work → Nova → Results stage and its script
+  center.css · pipeline.css
+src/nova/shared.css    # tokens, agent stage, chat card, cursor, keyframes (both pages)
+```

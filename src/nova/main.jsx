@@ -1,4 +1,5 @@
 import '@fontsource-variable/geist';
+import './shared.css';
 import './nova.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';

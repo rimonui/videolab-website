@@ -32,3 +32,28 @@ src/
 - **Shape:** 20–28px radii, pill buttons, 1px hairlines, sticker badges
 
 Photography is hot-linked from Unsplash; swap the ids in `PHOTO` (src/data/menu.js) for brand shoots.
+
+---
+
+# Nova — AI agent hero (`/nova/`)
+
+A second, standalone page: navbar, hero and trusted-by row for an AI agent product.
+Open `http://localhost:5173/nova/` in dev, or `preview/nova/index.html` from the static build.
+
+```
+nova/index.html          # page entry (second Vite input, see vite.config.js)
+src/nova/
+  NovaPage.jsx           # navbar, hero copy, trusted-by row
+  AgentStage.jsx         # right-side stage: scripted agent chat, tool tiles, agent cursor
+  FluidCanvas.jsx        # WebGL blue "liquid glass" background (pauses off-screen)
+  Logos.jsx              # placeholder customer wordmarks — fictional, replace before launch
+  icons.jsx · nova.css
+```
+
+- **Chat loop (~30s):** user types a request → agent checks calendars (tool tile lights up, cursor flag
+  "Nova · Checking calendars") → streamed reply + meeting card the cursor confirms → user dictates a
+  follow-up (voice mode) → agent drags the project brief from Drive into the thread → notifies the team → reply → reset.
+  Edit the copy at the top of `AgentStage.jsx`.
+- **Motion:** pointer bends the fluid and tilts the card; `prefers-reduced-motion` shows the finished
+  conversation as a still and stops the loops. No WebGL → CSS gradient fallback.
+- **Type:** Geist (self-hosted via Fontsource). **Palette:** black `#02040A`, blue `#2F6BFF`, ice `#D4E3FF`.

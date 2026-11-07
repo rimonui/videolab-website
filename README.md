@@ -32,3 +32,20 @@ src/
 - **Shape:** 20–28px radii, pill buttons, 1px hairlines, sticker badges
 
 Photography is hot-linked from Unsplash; swap the ids in `PHOTO` (src/data/menu.js) for brand shoots.
+
+---
+
+# Lowtide Runway — "Try the Look" (`runway/`)
+
+A standalone, shoppable lookbook page for a fictional streetwear brand. Plain HTML/CSS/JS — no build step.
+
+```bash
+cd runway && python3 -m http.server 8000   # then open http://localhost:8000
+```
+
+- `looks.js` — all content: each look's photo, pieces, prices and pin positions (in % of the photo)
+- `app.js` — runway carousel (arrows, dots, swipe/drag, keyboard), pins, "In this look" panel, bag count
+- `styles.css` — layout; on screens under 960px the panel becomes a bottom sheet
+- `images/` — studio photos from Pexels (free licence), cropped to 2:3. Swap in your own shoots and update the pin positions.
+
+Product thumbnails are zoomed crops of the model photo, so a new look only needs one image.

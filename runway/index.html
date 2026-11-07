@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Runway — Lowtide</title>
+  <meta name="description" content="Try the look. Six outfits, styled head to toe. Tap a pin to see the piece." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <a class="logo" href="#" aria-label="Lowtide home">
+      <svg viewBox="0 0 40 16" aria-hidden="true"><path d="M1 11c4 0 4-6 8-6s4 6 8 6 4-6 8-6 4 6 8 6 4-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <span>LOWTIDE</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#">New</a>
+      <a href="#">Men</a>
+      <a href="#">Women</a>
+      <a href="#" aria-current="page">Runway</a>
+    </nav>
+    <button class="bag-btn" type="button" aria-label="Bag, 0 items">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8Z M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <span class="bag-count" data-count="0">0</span>
+    </button>
+  </header>
+
+  <main class="runway">
+    <section class="intro">
+      <h1>Try the Look.</h1>
+      <p>Six looks, styled head to toe. Tap a pin to see the piece.</p>
+    </section>
+
+    <div class="layout">
+      <section class="stage-wrap" aria-roledescription="carousel" aria-label="Looks">
+        <div class="stage" id="stage"></div>
+
+        <div class="stage-bar">
+          <div class="look-meta">
+            <span class="look-num" id="lookNum">01</span>
+            <span class="look-name" id="lookName"></span>
+          </div>
+          <div class="dots" id="dots" role="tablist" aria-label="Choose a look"></div>
+          <div class="arrows">
+            <button type="button" class="arrow" id="prev" aria-label="Previous look">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+            <button type="button" class="arrow" id="next" aria-label="Next look">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="sheet-open" id="sheetOpen">
+          <span>Shop this look</span><span class="sheet-open-count" id="sheetCount"></span>
+        </button>
+      </section>
+
+      <aside class="panel" id="panel" aria-label="In this look">
+        <div class="panel-head">
+          <div class="grabber" aria-hidden="true"></div>
+          <h2>In this look</h2>
+          <span class="panel-count" id="panelCount"></span>
+          <button type="button" class="panel-close" id="panelClose" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+        </div>
+        <ul class="items" id="items"></ul>
+        <div class="panel-foot">
+          <div class="total">
+            <span>Complete the look</span>
+            <strong id="total">$0</strong>
+          </div>
+          <button type="button" class="add-all" id="addAll">
+            Add full look to bag <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <footer class="credits">
+    Photos via Pexels. Lowtide is a fictional brand.
+  </footer>
+
+  <script src="looks.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

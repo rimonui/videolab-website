@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rimon — AI Design Engineer intro</title>
+<style>
+  /* Edit these to change the copy */
+  :root { --ink:#0d0c12; --purple:#6c4dff; --purple2:#8b6bff; --lime:#d8f34a; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1920px; height:1080px; overflow:hidden; background:#000; }
+  body { font-family:'Inter Display','Inter',sans-serif; color:var(--ink); }
+  #stage { position:relative; width:1920px; height:1080px; overflow:hidden;
+    background:radial-gradient(ellipse at 50% 30%, #fbfbfd 0%, #ececf1 55%, #dcdce3 100%); }
+  .abs { position:absolute; }
+  .mono { font-family:'JetBrains Mono','DejaVu Sans Mono',monospace; }
+  .hud { font-size:15px; letter-spacing:.08em; color:#8a8a96; font-weight:500; }
+  .layer { position:absolute; inset:0; }
+  .guide-v { position:absolute; top:0; bottom:0; width:0; border-left:1.5px dashed #c9c9d3; }
+  .guide-h { position:absolute; left:0; right:0; height:0; border-top:1.5px dashed #c9c9d3; }
+  .measure { font-size:14px; color:#9a9aa8; }
+  .big { font-weight:900; letter-spacing:-0.035em; line-height:1; white-space:nowrap; }
+  .tag { background:var(--purple); color:#fff; font-size:15px; font-weight:600; padding:4px 9px; border-radius:6px; white-space:nowrap; }
+  .pill { position:absolute; height:140px; border-radius:70px; display:flex; align-items:center; justify-content:center;
+    padding:0 64px; font-size:76px; font-weight:800; letter-spacing:-0.02em; white-space:nowrap; }
+  .dot { display:inline-block; }
+  .caret { display:inline-block; width:6px; background:var(--purple); vertical-align:baseline; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- dark backdrop used by intro + toggle scenes -->
+  <div id="dark" class="layer" style="background:radial-gradient(ellipse at 50% 40%, #24232b 0%, #0e0d12 70%);"></div>
+  <!-- purple backdrop for "Designing" alt slides -->
+  <div id="purpleBg" class="layer" style="background:linear-gradient(135deg,#7a5cff 0%,#6142f0 100%);opacity:0"></div>
+
+  <!-- guides -->
+  <div id="guides" class="layer">
+    <div class="guide-v" style="left:560px"></div>
+    <div class="guide-v" style="left:1100px"></div>
+    <div class="guide-h" style="top:455px"></div>
+    <div class="guide-h" style="top:640px"></div>
+  </div>
+
+  <!-- S0/S1: HELLO -->
+  <div id="hello" class="layer">
+    <div id="helloSel" class="abs" style="left:540px;top:430px;width:880px;height:230px;background:rgba(108,77,255,.13);border:2px solid rgba(108,77,255,.55);"></div>
+    <div id="helloFrame" class="abs" style="left:540px;top:430px;width:880px;height:230px;border:2.5px solid var(--purple);">
+      <div class="tag abs" style="left:-2px;top:-34px;font-size:14px">Frame · Hello</div>
+      <div class="tag abs mono" style="left:50%;bottom:-36px;transform:translateX(-50%);font-size:13px">1024 × 228</div>
+      <i class="abs" style="left:-8px;top:-8px;width:14px;height:14px;background:#fff;border:2px solid var(--purple)"></i>
+      <i class="abs" style="right:-8px;top:-8px;width:14px;height:14px;background:#fff;border:2px solid var(--purple)"></i>
+      <i class="abs" style="left:-8px;bottom:-8px;width:14px;height:14px;background:#fff;border:2px solid var(--purple)"></i>
+      <i class="abs" style="right:-8px;bottom:-8px;width:14px;height:14px;background:#fff;border:2px solid var(--purple)"></i>
+    </div>
+    <div class="abs mono measure" id="m1" style="left:1040px;top:410px">811 px</div>
+    <div class="abs mono measure" id="m2" style="left:470px;top:536px">192 px</div>
+    <div id="helloText" class="abs big" style="left:580px;top:452px;font-size:190px;color:#0d0c12"><span id="helloChars"></span><span id="helloDot" class="dot" style="width:38px;height:38px;border-radius:50%;background:var(--purple);margin-left:14px;vertical-align:baseline"></span><span id="helloCaret" class="caret" style="height:150px;margin-left:8px"></span></div>
+  </div>
+
+  <!-- intro caret on dark -->
+  <div id="limeCaret" class="abs" style="left:640px;top:470px;width:6px;height:150px;background:var(--lime)"></div>
+
+  <!-- vector label -->
+  <div id="vecLabel" class="abs" style="left:150px;top:150px;background:#fff;border:1px solid #ddd;border-radius:6px;padding:8px 12px;box-shadow:0 4px 12px rgba(0,0,0,.06)">
+    <div class="mono" style="font-size:15px;color:#333">Vector · rimon.svg</div>
+    <div class="mono" style="font-size:13px;color:#999;margin-top:4px"><span id="vecPts">0</span> points</div>
+  </div>
+
+  <!-- SVG layer: silhouette + dual-tone text -->
+  <svg id="svg" class="layer" width="1920" height="1080" viewBox="0 0 1920 1080">
+    <defs>
+      <clipPath id="silClip" clipPathUnits="userSpaceOnUse"><path id="silClipPath"/></clipPath>
+      <filter id="sblur"><feGaussianBlur id="sblurAmt" stdDeviation="0"/></filter>
+    </defs>
+    <g id="silG" filter="url(#sblur)">
+      <path id="silFill" fill="#0b0a10"/>
+      <path id="silStroke" fill="none" stroke="#6c4dff" stroke-width="3" stroke-linejoin="round"/>
+    </g>
+    <g id="txtDark"></g>
+    <g id="txtWhite" clip-path="url(#silClip)"></g>
+  </svg>
+
+  <!-- pen tool -->
+  <div id="pen" class="abs" style="width:0;height:0">
+    <svg width="34" height="34" viewBox="0 0 24 24" style="position:absolute;left:-4px;top:-30px"><path d="M3 21l3-9 9-9 6 6-9 9z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><circle cx="11" cy="13" r="1.8" fill="#111"/></svg>
+    <div class="abs" style="left:30px;top:10px;background:#111;color:#fff;font-size:13px;padding:3px 7px;border-radius:4px;font-weight:600">Pen P</div>
+  </div>
+
+  <!-- S3 subtitle -->
+  <div id="nameSub" class="abs mono" style="left:338px;top:900px;font-size:22px;font-weight:800;letter-spacing:.14em;color:#fff;mix-blend-mode:difference">AI DESIGN ENGINEER · UI/UX · AI</div>
+  <!-- S4 annotations -->
+  <div id="anno1" class="abs tag mono" style="left:220px;top:92px;font-size:14px">H1 · 228 / Black</div>
+  <div id="anno2" class="abs tag mono" style="left:120px;top:380px;font-size:14px">Auto layout ↕ 8</div>
+  <div id="annoLine" class="abs" style="left:218px;top:150px;width:2px;height:330px;background:var(--purple)"></div>
+  <!-- S5 sub -->
+  <div id="uxSub" class="abs mono" style="left:0;width:1920px;text-align:center;top:770px;font-size:22px;font-weight:800;letter-spacing:.32em;color:#fff;mix-blend-mode:difference">USER EXPERIENCE · ARTIFICIAL INTELLIGENCE</div>
+
+  <!-- S6 toggle -->
+  <div id="toggleScene" class="layer">
+    <div class="abs mono" style="left:0;width:1920px;text-align:center;top:250px;font-size:17px;color:#6d6b78">Toggle / Design mode</div>
+    <div class="abs mono" id="offLbl" style="left:600px;top:420px;font-size:20px;font-weight:700;color:#77757f">OFF</div>
+    <div class="abs mono" id="onLbl" style="left:1290px;top:420px;font-size:20px;font-weight:700;color:#4a4852">ON</div>
+    <div id="track" class="abs" style="left:700px;top:340px;width:520px;height:190px;border-radius:95px;background:#3a3940;box-shadow:inset 0 6px 20px rgba(0,0,0,.45)"></div>
+    <div id="knob" class="abs" style="left:715px;top:355px;width:160px;height:160px;border-radius:50%;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.35)"></div>
+    <div id="tText1" class="abs big" style="left:0;width:1920px;text-align:center;top:620px;font-size:84px;font-weight:800;letter-spacing:-0.02em;color:#77757f">Just pretty.</div>
+    <div id="tText2" class="abs big" style="left:0;width:1920px;text-align:center;top:620px;font-size:84px;font-weight:800;letter-spacing:-0.02em;color:#fff">Pretty <span style="color:var(--purple2)">+</span> shipped.</div>
+  </div>
+  <div id="wipe" class="abs" style="border-radius:50%;background:#f5f5f8"></div>
+
+  <!-- S7 Designing -->
+  <div id="designing" class="layer">
+    <div id="dCount" class="abs mono" style="left:600px;top:440px;font-size:16px;color:#888">01 / 05</div>
+    <div id="dWord" class="abs" style="left:420px;top:475px;font-size:104px;font-weight:400;letter-spacing:-0.03em">Designing</div>
+    <svg id="dScribble" class="abs" style="left:420px;top:600px" width="480" height="40" viewBox="0 0 480 40"><path id="dScribPath" d="M6 22 C 80 30, 160 10, 250 20 S 400 28, 470 14 M40 32 C 120 26, 220 34, 330 26" fill="none" stroke="#6c4dff" stroke-width="5" stroke-linecap="round"/></svg>
+    <div id="dItems" class="abs" style="left:930px;top:470px;height:140px;width:1000px;overflow:hidden"></div>
+  </div>
+
+  <!-- S8 How I work -->
+  <div id="how" class="layer">
+    <div id="howTitle" class="abs" style="left:110px;top:120px;font-size:58px;font-weight:500;letter-spacing:-0.02em;border-bottom:4px solid #111;padding-bottom:4px">How I work</div>
+    <div id="howTrack" class="abs" style="left:0;top:470px;width:4000px;height:200px"></div>
+  </div>
+
+  <!-- S9 name card -->
+  <div id="card" class="layer">
+    <div id="cName" class="abs big" style="left:110px;top:130px;font-size:260px">RIMON</div>
+    <div id="cRule" class="abs" style="left:115px;top:405px;height:5px;width:1690px;background:#111;transform-origin:left"></div>
+    <div id="cRole" class="abs" style="left:115px;top:440px;font-size:66px;font-weight:900;letter-spacing:-0.01em">AI DESIGN ENGINEER</div>
+    <div id="cRole2" class="abs" style="right:115px;top:440px;font-size:66px;font-weight:900">UI/UX</div>
+    <div id="cTags" class="abs mono" style="left:118px;top:545px;font-size:21px;font-weight:800;letter-spacing:.1em">UI/UX · PRODUCT DESIGN · PROTOTYPING · REACT · AI AGENTS · DESIGN SYSTEMS</div>
+    <div id="cPill" class="abs" style="left:118px;top:640px;height:52px;border-radius:26px;background:var(--purple);color:#fff;font-size:20px;font-weight:800;letter-spacing:.12em;display:flex;align-items:center;padding:0 30px">AVAILABLE FOR PROJECTS</div>
+    <div id="cBig" class="abs big" style="right:140px;top:700px;font-size:210px">DESIGN + AI<span style="display:inline-block;width:46px;height:46px;border-radius:50%;background:var(--purple);margin-left:12px"></span></div>
+    <svg id="cScrib" class="abs" style="right:150px;top:900px" width="1100" height="50" viewBox="0 0 1100 50"><path id="cScribPath" d="M10 20 C 200 40, 500 8, 760 24 S 1000 30, 1090 12" fill="none" stroke="#6c4dff" stroke-width="6" stroke-linecap="round"/></svg>
+  </div>
+
+  <!-- S10 end card -->
+  <div id="endc" class="layer">
+    <div id="eName" class="abs big" style="left:0;width:1920px;text-align:center;top:360px;font-size:180px">RIMON<span style="display:inline-block;width:36px;height:36px;border-radius:50%;background:var(--purple);margin-left:10px"></span></div>
+    <div id="eRole" class="abs mono" style="left:0;width:1920px;text-align:center;top:560px;font-size:30px;font-weight:800;letter-spacing:.16em">AI DESIGN ENGINEER — UI/UX</div>
+    <div id="eTags" class="abs mono" style="left:0;width:1920px;text-align:center;top:614px;font-size:18px;font-weight:800;letter-spacing:.32em;color:#333">DESIGN · PROTOTYPING · CODE · AI · SYSTEMS</div>
+    <div id="eType" class="abs" style="left:0;width:1920px;text-align:center;top:690px;font-size:40px;font-weight:500;color:#444"><span id="eTypeTxt"></span><span id="eCaret" class="caret" style="height:40px;width:3px;margin-left:3px;vertical-align:-6px"></span></div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="layer" style="pointer-events:none">
+    <div class="abs mono hud" style="left:40px;top:30px">RIMON®</div>
+    <div class="abs mono hud" style="right:40px;top:30px">AI DESIGN ENGINEER — UI/UX</div>
+    <div class="abs mono hud" id="tc" style="left:40px;bottom:28px">00:00:00</div>
+    <div class="abs mono hud" style="right:40px;bottom:28px">PORTFOLIO '26</div>
+  </div>
+
+  <!-- cursor -->
+  <div id="cursor" class="abs" style="width:0;height:0;z-index:50">
+    <svg width="40" height="40" viewBox="0 0 24 24" style="position:absolute;left:-3px;top:-2px"><path d="M3 2l7 19 2.6-7.4L20 11z" fill="#6c4dff" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <div class="tag abs" style="left:30px;top:30px;font-size:15px">Rimon</div>
+  </div>
+  <div id="fade" class="layer" style="background:#0e0d12;opacity:0"></div>
+</div>
+
+<script>
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const clamp = (v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const P = (t,a,b)=>clamp((t-a)/(b-a));
+const lerp=(a,b,k)=>a+(b-a)*k;
+const eo = k=>1-Math.pow(1-k,3);
+const eio = k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+const eback = k=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(k-1,3)+c*Math.pow(k-1,2);};
+const show=(el,v)=>{ (typeof el==='string'?$(el):el).style.display = v?'':'none'; };
+const st=(id,o)=>Object.assign($(id).style,o);
+const SVGNS='http://www.w3.org/2000/svg';
+
+// ---------- silhouette (procedural profile, facing right) ----------
+function buildSil(){
+  const pts=[];
+  const add=(x,y)=>pts.push([x,y]);
+  add(560,1080); add(640,1000); add(760,935); add(880,880); add(905,800); add(900,720);
+  add(870,660); add(850,600);
+  // curly hair arc from back of head over top to forehead
+  const cx=1000, cy=450, N=44;
+  for(let i=0;i<=N;i++){
+    const a = lerp(Math.PI*0.93, Math.PI*2.07, i/N);
+    const r = 200 + 26*Math.abs(Math.sin(i*0.55)) + 8*Math.sin(i*0.23) + (i>N*0.78? -24*(i-N*0.78)/(N*0.22):0);
+    add(cx+Math.cos(a)*r*1.02, cy+Math.sin(a)*r*0.98 - 20);
+  }
+  // face profile
+  add(1158,395); add(1166,440); add(1180,470); add(1176,490); add(1200,540); add(1206,560);
+  add(1182,572); add(1186,592); add(1174,604); add(1180,622); add(1166,640); add(1160,668);
+  add(1132,690); add(1090,700); add(1062,710); add(1060,790); add(1090,860); add(1220,910);
+  add(1340,960); add(1420,1030); add(1450,1080);
+  // catmull-rom -> bezier
+  let d=`M${pts[0][0]},${pts[0][1]}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+    const c1=[p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6];
+    d+=` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0]},${p2[1]}`;
+  }
+  return {open:d, closed:d+' L560,1080 Z', count:pts.length};
+}
+const SIL=buildSil();
+$('silStroke').setAttribute('d',SIL.open);
+$('silFill').setAttribute('d',SIL.closed);
+$('silClipPath').setAttribute('d',SIL.closed);
+const SLEN=$('silStroke').getTotalLength();
+$('silStroke').setAttribute('stroke-dasharray',SLEN);
+
+// ---------- dual-tone svg text ----------
+function dual(txt,size,weight=900){
+  const mk=fill=>{const t=document.createElementNS(SVGNS,'text');t.textContent=txt;
+    t.setAttribute('font-family','Inter Display, Inter, sans-serif');t.setAttribute('font-weight',weight);
+    t.setAttribute('font-size',size);t.setAttribute('letter-spacing',-size*0.035);t.setAttribute('fill',fill);return t;};
+  const a=mk('#0d0c12'), b=mk('#ffffff'); $('txtDark').appendChild(a); $('txtWhite').appendChild(b);
+  return {a,b,set(x,y,op=1,blur=0,extra=''){
+    for(const e of [a,b]){e.setAttribute('x',x);e.setAttribute('y',y);e.style.opacity=op;
+      e.style.filter=blur?`blur(${blur}px)`:'none'; e.setAttribute('transform',extra);} },
+    hide(){a.style.opacity=0;b.style.opacity=0;}};
+}
+// per-letter dual text (for drop-out exits)
+function dualLetters(txt,size,x,y){
+  const letters=[]; let cx=x;
+  const probe=document.createElementNS(SVGNS,'text');probe.setAttribute('font-family','Inter Display, Inter');probe.setAttribute('font-weight',900);probe.setAttribute('font-size',size);
+  $('txtDark').appendChild(probe);
+  for(const ch of txt){ probe.textContent=ch; const w=ch===' '?size*0.28:probe.getComputedTextLength();
+    const d=dual(ch,size); d.a.setAttribute('letter-spacing',0); d.b.setAttribute('letter-spacing',0);
+    letters.push({d,x:cx,w}); cx+=w-size*0.02; }
+  probe.remove(); return {letters,width:cx-x};
+}
+
+const imT = dual("I'M",110);
+const nameL = dualLetters('RIMON',300,330,870);
+const l1 = dual('AI DESIGN',225); const l2 = dual('ENGINEER',225);
+const ux = dual('UX',330); const ai = dual('AI',330); const slash = (()=>{const t=document.createElementNS(SVGNS,'text');t.textContent='/';
+  t.setAttribute('font-family','Inter Display');t.setAttribute('font-weight',900);t.setAttribute('font-size',330);t.setAttribute('fill','#6c4dff');$('txtWhite').parentNode.appendChild(t);return t;})();
+
+// "Designing" items
+const ITEMS=['AI Products','Web Apps','Mobile Apps','Design Systems','in Code'];
+ITEMS.forEach(w=>{const d=document.createElement('div');d.className='abs';d.textContent=w;
+  Object.assign(d.style,{left:'0',top:'0',fontSize:'104px',fontWeight:'800',letterSpacing:'-0.03em',whiteSpace:'nowrap'});$('dItems').appendChild(d);});
+
+// How I work pills
+const STEPS=['Research','Design','Build with AI','Ship it'];
+const SPACING=760, pills=[], conns=[];
+STEPS.forEach((s,i)=>{
+  const lab=document.createElement('div');lab.className='abs mono';lab.textContent=`STEP 0${i+1}`;
+  Object.assign(lab.style,{left:(i*SPACING)+'px',top:'-40px',fontSize:'16px',color:'#999',width:'600px'});
+  const p=document.createElement('div');p.className='pill';p.textContent=s;p.style.left=(i*SPACING)+'px';p.style.top='0';
+  $('howTrack').appendChild(lab);$('howTrack').appendChild(p);pills.push({p,lab});
+  if(i<STEPS.length-1){const c=document.createElementNS(SVGNS,'svg');c.setAttribute('width',260);c.setAttribute('height',80);
+    c.innerHTML='<path d="M4 40 C 50 0, 90 0, 130 40 S 210 80, 245 40" fill="none" stroke="#6c4dff" stroke-width="4"/><path d="M240 30 L256 40 L240 50 Z" fill="#6c4dff"/><circle cx="6" cy="40" r="7" fill="#fff" stroke="#6c4dff" stroke-width="3"/>';
+    c.style.position='absolute';c.style.top='30px';$('howTrack').appendChild(c);conns.push(c);}
+});
+
+const SCRIB_D=$('dScribPath').getTotalLength(); $('dScribPath').style.strokeDasharray=SCRIB_D;
+const SCRIB_C=$('cScribPath').getTotalLength(); $('cScribPath').style.strokeDasharray=SCRIB_C;
+
+const TOTAL=23.6;
+// cursor keyframes [t,x,y]
+const CUR=[[0,1500,900],[1.2,1460,860],[1.5,700,690],[2.0,1270,690],[2.3,1300,650],[2.7,1440,690],[3.1,1440,700],[3.5,1580,860],
+  [10.6,1500,900],[11.1,1500,880],[11.45,800,450],[11.7,800,450],[12.0,1180,450],[12.3,1300,720],
+  [99,1300,720]];
+function interpKF(kf,t){for(let i=0;i<kf.length-1;i++){const[a,x1,y1]=kf[i],[b,x2,y2]=kf[i+1];
+  if(t<=b){const k=eio(P(t,a,b));return [lerp(x1,x2,k),lerp(y1,y2,k)];}} return kf[kf.length-1].slice(1);}
+
+function hideAll(){
+  ['dark','purpleBg','guides','hello','limeCaret','vecLabel','pen','nameSub','anno1','anno2','annoLine','uxSub','toggleScene','wipe','designing','how','card','endc','cursor'].forEach(id=>show(id,false));
+  $('silG').style.display='none';
+  [imT,l1,l2,ux,ai].forEach(d=>d.hide()); nameL.letters.forEach(l=>l.d.hide()); slash.style.opacity=0;
+  st('stage',{filter:'none'});
+}
+
+function render(t){
+  hideAll();
+  const s=Math.floor(t), f=Math.floor((t-s)*30);
+  $('tc').textContent=`00:${String(s).padStart(2,'0')}:${String(f).padStart(2,'0')}`;
+  $('fade').style.opacity = P(t,TOTAL-0.35,TOTAL);
+  let cursorOn=false;
+
+  // S0 dark caret 0-1.2
+  if(t<1.2){
+    show('dark',true); show('limeCaret',true);
+    $('limeCaret').style.opacity = (Math.floor(t*2.5)%2===0)?1:0.15;
+    if(t>0.85){ show('hello',true); show('guides',true); $('guides').style.opacity=.35;
+      $('helloChars').textContent='H'; st('helloText',{color:'#fff'}); show('helloDot',false); show('helloCaret',false);
+      ['helloSel','helloFrame','m1','m2'].forEach(i=>show(i,false)); show('limeCaret',false);
+      $('limeCaret').style.display='';$('limeCaret').style.left='755px';$('limeCaret').style.opacity=1; }
+  }
+  // S1 HELLO 1.2-3.6
+  else if(t<3.6){
+    show('guides',true); $('guides').style.opacity=1; show('hello',true); cursorOn=true;
+    st('helloText',{color:'#0d0c12',opacity:1-P(t,3.4,3.6),filter:`blur(${P(t,3.4,3.6)*14}px)`});
+    const n=1+Math.floor(clamp((t-1.2)/0.18,0,4)); $('helloChars').textContent='HELLO'.slice(0,n);
+    show('helloCaret', t<2.05); $('helloCaret').style.opacity=(Math.floor(t*4)%2)?1:.2;
+    const dk=P(t,2.1,2.35); show('helloDot',dk>0); $('helloDot').style.transform=`scale(${eback(dk)})`;
+    show('m1',t<2.6); show('m2',t<2.6);
+    show('helloSel', t>2.55 && t<3.0); show('helloFrame', t>=3.0 && t<3.45);
+    $('guides').style.opacity = 1-P(t,3.3,3.6);
+  }
+  // S2 silhouette draw 3.6-5.6
+  else if(t<5.6){
+    $('silG').style.display=''; $('sblurAmt').setAttribute('stdDeviation',0);
+    $('silG').setAttribute('transform','');
+    const dk=eio(P(t,3.7,5.0)); $('silStroke').style.strokeDashoffset=SLEN*(1-dk);
+    const fk=P(t,5.0,5.4); $('silFill').style.opacity=fk; $('silStroke').style.opacity=1-fk;
+    show('vecLabel',true); $('vecLabel').style.opacity=1-P(t,5.3,5.6); $('vecPts').textContent=Math.round(dk*SIL.count);
+    if(t<5.05){ show('pen',true); const p=$('silStroke').getPointAtLength(Math.max(1,SLEN*dk)); st('pen',{left:p.x+'px',top:p.y+'px'}); }
+    setClip('');
+  }
+  // S3 I'M RIMON 5.6-7.6
+  else if(t<7.6){
+    silShow('',0);
+    const ik=P(t,5.6,5.85), im2=eio(P(t,6.05,6.35));
+    imT.set(lerp(960,335,im2), lerp(560,630,im2), ik, 0, `scale(1)`);
+    imT.a.setAttribute('font-size',lerp(110,56,im2)); imT.b.setAttribute('font-size',lerp(110,56,im2));
+    if(t>7.25) imT.set(335,630,1-P(t,7.25,7.4));
+    nameL.letters.forEach((L,i)=>{
+      const ink=eo(P(t,5.95+i*0.04,6.35+i*0.04)); const out=P(t,7.15+i*0.06,7.55+i*0.06);
+      const x=L.x+lerp(-900,0,ink); const blur=(1-ink)*24 + out*10;
+      const y=870+ out*out*500; const rot=out*(i%2?40:-35);
+      L.d.set(x,y,ink*(1-out),blur,`rotate(${rot} ${x+L.w/2} ${y-120})`);
+    });
+    show('nameSub',true); st('nameSub',{opacity:P(t,6.4,6.6)*(1-P(t,7.1,7.3))});
+  }
+  // S4 AI DESIGN / ENGINEER 7.6-9.2
+  else if(t<9.2){
+    silShow('translate(260 0)',0);
+    const a=eo(P(t,7.6,7.95)), b=eo(P(t,7.75,8.15)), out=eio(P(t,8.95,9.2));
+    l1.set(lerp(-1200,120,a)-out*300, 330, 1-out, (1-a)*30+out*20);
+    l2.set(lerp(-1200,420,b)-out*300, 560, 1-out, (1-b)*40+out*20);
+    const an=P(t,8.3,8.5)*(1-out);
+    show('anno1',true);show('anno2',true);show('annoLine',true);
+    [ 'anno1','anno2','annoLine'].forEach(i=>$(i).style.opacity=an);
+  }
+  // S5 UX/AI 9.2-10.6
+  else if(t<10.6){
+    silShow('translate(-40 -60)', 7);
+    const k=eo(P(t,9.25,9.6)), out=P(t,10.35,10.6);
+    const sc=lerp(1.25,1,k);
+    const tf=`translate(960 640) scale(${sc}) translate(-960 -640)`;
+    const wU=ux.a.getComputedTextLength(), wA=ai.a.getComputedTextLength(), wS=slash.getComputedTextLength(), g=10;
+    const x0=960-(wU+wS+wA+2*g)/2;
+    ux.set(x0,750,k*(1-out),(1-k)*20+out*20,tf); ai.set(x0+wU+wS+2*g,750,k*(1-out),(1-k)*20+out*20,tf);
+    slash.setAttribute('x',x0+wU+g);slash.setAttribute('y',750);slash.style.opacity=k*(1-out);slash.setAttribute('transform',tf);
+    show('uxSub',true); st('uxSub',{opacity:P(t,9.6,9.8)*(1-out)});
+  }
+  // S6 Toggle 10.6-12.75
+  else if(t<12.75){
+    show('dark',true); show('toggleScene',true); cursorOn=t<12.3;
+    const on=eio(P(t,11.55,11.8));
+    st('knob',{left:lerp(715,1045,on)+'px'});
+    st('track',{background:on>0.5?'#6c4dff':'#3a3940',boxShadow:on>0.5?'0 0 60px rgba(108,77,255,.45)':'inset 0 6px 20px rgba(0,0,0,.45)'});
+    $('onLbl').style.color=on>0.5?'#8b6bff':'#4a4852'; $('offLbl').style.color=on>0.5?'#4a4852':'#77757f';
+    st('tText1',{opacity:P(t,10.8,11.0)*(1-P(t,11.6,11.7))});
+    st('tText2',{opacity:P(t,11.7,11.85)*(1-P(t,12.15,12.3)), transform:`translateY(${(1-eo(P(t,11.7,11.9)))*30}px)`});
+    // zoom on knob, then wipe
+    const z=eio(P(t,12.15,12.45));
+    st('toggleScene',{transform:`scale(${lerp(1,1.35,z)})`,transformOrigin:'1125px 435px'});
+    ['offLbl','onLbl'].forEach(i=>$(i).style.opacity=1-z);
+    const w=eio(P(t,12.4,12.75)); show('wipe',w>0); const R=w*2300;
+    st('wipe',{left:(1125-R)+'px',top:(435-R)+'px',width:2*R+'px',height:2*R+'px'});
+  } else st('toggleScene',{transform:'none'});
+
+  // S7 Designing 12.75-15.4
+  if(t>=12.75 && t<15.4){
+    show('designing',true);
+    const seg=(15.4-12.75)/ITEMS.length; const idx=Math.min(ITEMS.length-1,Math.floor((t-12.75)/seg));
+    const purple = idx%2===1; show('purpleBg',true); $('purpleBg').style.opacity=purple?1:0;
+    const col=purple?'#fff':'#0d0c12';
+    $('dWord').style.color=col; $('dCount').style.color=purple?'rgba(255,255,255,.7)':'#888';
+    $('dScribPath').setAttribute('stroke',purple?'#fff':'#6c4dff');
+    $('dScribPath').style.strokeDashoffset=SCRIB_D*(1-eo(P(t,12.85,13.25)));
+    $('dCount').textContent=`0${idx+1} / 0${ITEMS.length}`;
+    [...$('dItems').children].forEach((el,i)=>{
+      const st0=12.75+i*seg; const k=eo(P(t,st0,st0+0.22)); const o=P(t,st0+seg-0.08,st0+seg);
+      const vis = i===idx || (i===idx-1 && t<st0+seg+0.1);
+      el.style.display=(i===idx)?'':'none';
+      el.style.color=col; el.style.transform=`translateY(${(1-k)*90}px)`; el.style.filter=`blur(${(1-k)*10}px)`; el.style.opacity=k;
+    });
+    const intro=eo(P(t,12.75,13.0)); $('dWord').style.opacity=intro; $('dWord').style.transform=`translateX(${(1-intro)*-60}px)`;
+  }
+  // S8 How I work 15.4-18.4
+  if(t>=15.4 && t<18.4){
+    show('how',true);
+    const tin=eo(P(t,15.4,15.65)); $('howTitle').style.opacity=tin; $('howTitle').style.filter=`blur(${(1-tin)*12}px)`;
+    const moves=[15.5,16.2,16.9,17.6]; let pos=0, speed=0;
+    moves.forEach((m,i)=>{const k=eio(P(t,m,m+0.35)); pos+= (i===0?k:k); const d=P(t,m,m+0.35); if(d>0&&d<1) speed=Math.sin(d*Math.PI);});
+    // pos goes 0..4: active index = pos-1
+    const active=pos-1; const x = 1150 - (active)*SPACING - (pos<1? (1-pos)*600:0);
+    $('howTrack').style.transform=`translateX(${x}px)`; $('howTrack').style.filter=`blur(${speed*14}px)`;
+    pills.forEach(({p,lab},i)=>{
+      const a=clamp(1-Math.abs(active-i));
+      p.style.background = a>0.5?'#6c4dff':'transparent'; p.style.color=a>0.5?'#fff':'#0d0c12';
+      p.style.border = a>0.5?'4px solid #6c4dff':'4px solid #0d0c12'; p.style.boxShadow=a>0.5?'0 20px 50px rgba(108,77,255,.35)':'none';
+      const w=p.offsetWidth; lab.style.left=(i*SPACING + 40)+'px';
+      if(conns[i]) conns[i].style.left=(i*SPACING + w + 14)+'px';
+      p.style.opacity = i<=Math.ceil(active)+0.01 ? 1 : 0; lab.style.opacity=a;
+      if(conns[i]) conns[i].style.opacity = i<active?1:0;
+    });
+    const out=P(t,18.15,18.4); $('how').style.opacity=1-out; $('how').style.filter=`blur(${out*16}px)`;
+  }
+  // S9 card 18.4-20.0
+  if(t>=18.4 && t<20.0){
+    show('card',true);
+    const a=eo(P(t,18.4,18.7)), b=eo(P(t,18.5,18.8)), c=eo(P(t,18.6,18.95)), d=eo(P(t,18.7,19.05));
+    st('cName',{transform:`translateX(${(1-a)*-500}px)`,filter:`blur(${(1-a)*25}px)`,opacity:a});
+    st('cRule',{transform:`scaleX(${b})`});
+    st('cRole',{opacity:b,transform:`translateX(${(1-b)*-300}px)`,filter:`blur(${(1-b)*15}px)`});
+    st('cRole2',{opacity:b,transform:`translateX(${(1-b)*300}px)`});
+    st('cTags',{opacity:c,filter:`blur(${(1-c)*12}px)`});
+    st('cPill',{opacity:d,transform:`scaleX(${d})`,transformOrigin:'left'});
+    st('cBig',{opacity:d,transform:`translateX(${(1-d)*500}px)`,filter:`blur(${(1-d)*25}px)`});
+    $('cScribPath').style.strokeDashoffset=SCRIB_C*(1-eo(P(t,19.05,19.5)));
+    const out=eio(P(t,19.75,20.0)); $('card').style.opacity=1-out; $('card').style.transform=`scale(${1-out*0.15})`;
+  }
+  // S10 end 19.85-22.5
+  if(t>=19.85){
+    show('endc',true);
+    const a=eback(P(t,19.85,20.25)); st('eName',{opacity:P(t,19.85,20.0),transform:`scale(${lerp(1.4,1,a)})`});
+    const b=eo(P(t,20.2,20.45)); st('eRole',{opacity:b,transform:`translateY(${(1-b)*20}px)`});
+    const c=eo(P(t,20.35,20.6)); st('eTags',{opacity:c,transform:`translateY(${(1-c)*20}px)`});
+    const msg="Let's build something users love."; const n=Math.floor(clamp((t-20.7)/0.045,0,msg.length));
+    $('eTypeTxt').textContent=msg.slice(0,n); $('eCaret').style.opacity=(t<20.7)?0:((Math.floor(t*3)%2)?1:0);
+  }
+
+  if(cursorOn){show('cursor',true);const[x,y]=interpKF(CUR,t);st('cursor',{left:x+'px',top:y+'px'});
+    const click = (t>11.45&&t<11.6)?0.85:1; $('cursor').style.transform=`scale(${click})`;}
+}
+function silShow(tf,blur){ $('silG').style.display=''; $('silFill').style.opacity=1; $('silStroke').style.opacity=0;
+  $('silG').setAttribute('transform',tf); $('sblurAmt').setAttribute('stdDeviation',blur); setClip(tf); }
+function setClip(tf){ $('silClipPath').setAttribute('transform',tf); }
+window.render=render; window.TOTAL=TOTAL;
+document.fonts.ready.then(()=>{window.READY=true;});
+// live preview: ?play
+if(location.search.includes('play')){const t0=performance.now();(function loop(){render(((performance.now()-t0)/1000)%TOTAL);requestAnimationFrame(loop);})();}
+else render(0);
+</script>
+</body>
+</html>

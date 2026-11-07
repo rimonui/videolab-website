@@ -1,73 +1,29 @@
-import { Logo } from './ui.jsx';
-import '../styles/footer.css';
+import { Logo, Arrow } from './ui.jsx';
 
-export default function Footer({ onCategory }) {
-  const filter = (key) => (e) => { e.preventDefault(); onCategory(key); };
-  const columns = [
-    { title: 'Menu', links: [
-      { label: 'Burgers', href: '#burgers' },
-      { label: 'Sides', href: '#full-menu', onClick: filter('sides') },
-      { label: 'Drinks', href: '#full-menu', onClick: filter('drinks') },
-      { label: 'Combos', href: '#combo' },
-    ] },
-    { title: 'About', links: [
-      { label: 'Our Story', href: '#story' },
-      { label: 'Ingredients', href: '#ingredients' },
-      { label: 'Careers', href: 'mailto:jobs@loudbun.com?subject=I%20want%20to%20smash%20burgers' },
-    ] },
-    { title: 'Help', links: [
-      { label: 'FAQ', href: '#faq' },
-      { label: 'Contact', href: 'mailto:hello@loudbun.com' },
-      { label: 'Delivery', href: '#faq' },
-    ] },
-    { title: 'Social', links: [
-      { label: 'Instagram', href: 'https://instagram.com', external: true },
-      { label: 'TikTok', href: 'https://tiktok.com', external: true },
-      { label: 'Facebook', href: 'https://facebook.com', external: true },
-    ] },
-  ];
+const COLS = {
+  Product: ['Agents', 'Guardrails', 'Integrations', 'Analytics', 'Pricing'],
+  Company: ['About', 'Customers', 'Careers', 'Contact'],
+  Resources: ['Docs', 'Changelog', 'Trust Center', 'Status'],
+};
 
+export default function Footer() {
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="footer__top">
-          <div className="footer__brand">
-            <Logo />
-            <p>Smash burgers, made loud.<br />Williamsburg &amp; Lower East Side, NYC.</p>
-          </div>
-          <nav className="footer__cols" aria-label="Footer">
-            {columns.map((c) => (
-              <div key={c.title}>
-                <p className="label footer__h">{c.title}</p>
-                <ul>
-                  {c.links.map((l) => (
-                    <li key={l.label}>
-                      <a
-                        href={l.href}
-                        onClick={l.onClick}
-                        {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      >
-                        {l.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </nav>
-        </div>
-
-        <p className="footer__word display" aria-hidden="true">Loud Bun</p>
-
-        <div className="footer__bottom">
-          <span>© 2026 Loud Bun Burger Co.</span>
-          <span className="footer__legal">
-            <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy</a>
-            <a href="#terms" onClick={(e) => e.preventDefault()}>Terms</a>
-          </span>
-          <a href="#top" className="footer__top-link">Back to top ↑</a>
-        </div>
+    <footer className="footer" id="demo">
+      <div className="cta" data-reveal>
+        <h2 className="h2">Put your first agent<br />to work this week.</h2>
+        <form className="cta__form" onSubmit={(e) => { e.preventDefault(); e.currentTarget.classList.add('is-sent'); }}>
+          <input type="email" required placeholder="Work email" aria-label="Work email" />
+          <button className="btn btn--accent">Book a Demo <Arrow /></button>
+          <span className="cta__ok">Thanks — we'll be in touch within a day.</span>
+        </form>
       </div>
+      <div className="footer__grid">
+        <div className="footer__brand"><Logo /><p>AI agents that resolve,<br />not just reply.</p></div>
+        {Object.entries(COLS).map(([h, l]) => (
+          <div key={h} className="footer__col"><h4>{h}</h4>{l.map((x) => <a key={x} href="#top">{x}</a>)}</div>
+        ))}
+      </div>
+      <div className="footer__base"><span>© 2026 Relay Labs, Inc.</span><span>Privacy · Terms · Cookies</span></div>
     </footer>
   );
 }

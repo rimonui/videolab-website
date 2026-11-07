@@ -1,97 +1,40 @@
-/* Small shared building blocks: icons, logo, section meta, stickers. */
+let uid = 0;
 
-export const Arrow = ({ className = '' }) => (
-  <svg className={`icon-arrow ${className}`} width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M4 12h15M13 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-export const Plus = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
-  </svg>
-);
-
-export const Minus = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
-  </svg>
-);
-
-export const Bag = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-    <path d="M9 10V6.5a3 3 0 0 1 6 0V10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
-export const Star = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-    <path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9L12 2.5Z" fill="currentColor" />
-  </svg>
-);
-
-export const Stars = ({ n = 5, size = 16 }) => (
-  <span className="stars" role="img" aria-label={`${n} out of 5 stars`}>
-    {Array.from({ length: n }, (_, i) => <Star key={i} size={size} />)}
-  </span>
-);
-
-export const LogoMark = ({ size = 38 }) => (
-  <svg className="logo-mark" width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
-    <circle cx="20" cy="20" r="20" fill="var(--mark-bg, #F6A70A)" />
-    <path d="M9 19a11 9 0 0 1 22 0z" fill="var(--mark-bun, #4D0805)" />
-    <rect x="8" y="21" width="24" height="4" rx="2" fill="var(--mark-patty, #FFF7DD)" />
-    <rect x="9" y="27" width="22" height="4" rx="2" fill="var(--mark-bun, #4D0805)" />
-  </svg>
-);
-
-export const Logo = () => (
-  <span className="logo">
-    <LogoMark />
-    <span className="logo__word">Loud Bun</span>
-  </span>
-);
-
-/* Editorial "01 / Label ———— 2026" header bar used across sections. */
-export const SectionMeta = ({ num, label, aside = 'Loud Bun Burger Co.' }) => (
-  <div className="sec-meta" data-reveal>
-    <span className="sec-meta__num">{num}</span>
-    <span className="sec-meta__label">{label}</span>
-    <span className="sec-meta__rule" aria-hidden="true" />
-    <span className="sec-meta__aside">{aside}</span>
-  </div>
-);
-
-/* Starburst sticker (SVG so it scales crisply at any size). */
-export const Burst = ({ children, className = '', points = 14 }) => {
-  const d = Array.from({ length: points * 2 }, (_, i) => {
-    const r = i % 2 ? 41 : 50;
-    const a = (Math.PI * i) / points - Math.PI / 2;
-    return `${(50 + r * Math.cos(a)).toFixed(2)},${(50 + r * Math.sin(a)).toFixed(2)}`;
-  }).join(' ');
+export function Logo({ light = true }) {
   return (
-    <span className={`burst ${className}`}>
-      <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points={d} /></svg>
-      <span className="burst__text">{children}</span>
-    </span>
+    <a href="#top" className={`logo ${light ? 'logo--light' : ''}`} aria-label="Relay home">
+      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+        <rect width="32" height="32" rx="6" fill="currentColor" />
+        <path d="M10 23V10h7a4 4 0 0 1 0 8h-3.5l6 5" stroke="var(--logo-ink)" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span>Relay</span>
+    </a>
   );
-};
+}
 
-/* Rotating circular type ring. */
-export const TextRing = ({ text, className = '' }) => (
-  <svg className={`text-ring ${className}`} viewBox="0 0 200 200" aria-hidden="true">
-    <defs>
-      <path id={`ring-${className}`} d="M100,100 m-84,0 a84,84 0 1,1 168,0 a84,84 0 1,1 -168,0" />
-    </defs>
-    <text>
-      <textPath href={`#ring-${className}`} startOffset="0">{text}</textPath>
-    </text>
-  </svg>
-);
+// Embossed plaster relief, generated with SVG lighting filters (no image files).
+export function Relief({ seed = 3, freq = 0.004, tint = '#ebe5da', elevation = 44, depth = 14, className = '' }) {
+  const id = `relief-${seed}-${uid++}`;
+  return (
+    <svg className={`relief ${className}`} preserveAspectRatio="xMidYMid slice" viewBox="0 0 800 800" aria-hidden="true">
+      <filter id={id} x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="turbulence" baseFrequency={freq} numOctaves="3" seed={seed} result="n" />
+        <feGaussianBlur in="n" stdDeviation="1.5" result="b" />
+        <feDiffuseLighting in="b" surfaceScale={depth} diffuseConstant="1.05" lightingColor={tint}>
+          <feDistantLight azimuth="235" elevation={elevation} />
+        </feDiffuseLighting>
+      </filter>
+      <rect width="800" height="800" filter={`url(#${id})`} />
+    </svg>
+  );
+}
 
 export const Check = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
+  <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3 8.5l3 3 7-7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+export const Play = () => (
+  <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2 1l9 5-9 5z" fill="currentColor" /></svg>
+);
+export const Arrow = () => (
+  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );

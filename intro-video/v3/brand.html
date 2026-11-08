@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rimon — brand reel v3 (Gr8r Studio)</title>
+<style>
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-300.woff2) format('woff2');font-weight:300}
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-400.woff2) format('woff2');font-weight:400}
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-500.woff2) format('woff2');font-weight:500}
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-600.woff2) format('woff2');font-weight:600}
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-700.woff2) format('woff2');font-weight:700}
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-800.woff2) format('woff2');font-weight:800}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1920px;overflow:hidden;background:#000}
+  body{font-family:'Funnel Display',sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden}
+  .L{position:absolute;inset:0}
+  .a{position:absolute}
+  .c{left:0;width:1080px;text-align:center;white-space:nowrap}
+  .mono{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;letter-spacing:.16em;text-transform:uppercase}
+  .caret{display:inline-block;width:7px;border-radius:2px;vertical-align:-0.06em;margin-left:8px}
+  .ch{display:inline-block;will-change:transform}
+  .gl{position:absolute;background:currentColor}
+  .node{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:1.5px solid currentColor;background:inherit}
+  #photo,#sil{position:absolute;display:none}
+  #fgL{z-index:3} #bgL{z-index:0} #hudL{z-index:6}
+  #outline{position:absolute;display:none;overflow:visible}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bgL" class="L"></div>
+  <img id="photo" src="assets/portrait.png">
+  <img id="sil" src="assets/silhouette.png">
+  <svg id="outline"><path id="outPath" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div id="fgL" class="L"></div>
+  <div id="hudL" class="L" style="pointer-events:none"></div>
+</div>
+<script>
+// =====================================================================
+//  COPY — edit here
+// =====================================================================
+const NAME='Rimon';
+const TITLE='AI Design Engineer';
+const STUDIO='Gr8r Studio';
+const ROLES=[['AI Design','Engineer'],['Product','Designer'],['UI/UX','Designer'],['Creative','Partner']];
+const DISCIPLINES=['AI Product Design','UI/UX Design','Design Systems','Web Design','Mobile Apps','Prototyping',
+  'AI Agents','Front-end Code','Brand Identity','Motion Design','Product Strategy'];
+const TOTAL=30;
+const C={red:'#FE370B',redDeep:'#D92F08',ink:'#0B0B0C',dark:'#141414',paper:'#F5F5F4',cream:'#F9F3EB',mute:'#8b8b90'};
+
+// =====================================================================
+const $=id=>document.getElementById(id);
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const P=(t,a,b)=>clamp((t-a)/(b-a));
+const lerp=(a,b,k)=>a+(b-a)*k;
+const eo=k=>1-Math.pow(1-k,3);
+const eo5=k=>1-Math.pow(1-k,5);
+const eio=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+const eexp=k=>k>=1?1:1-Math.pow(2,-10*k);
+const spring=k=>k>=1?1:1-Math.exp(-6*k)*Math.cos(9*k);
+const blink=t=>Math.floor(t*2.4)%2===0;
+const nTyped=(len,t,a,cps)=>Math.floor(clamp((t-a)*cps,0,len));
+const caret=(h,col,on=true)=>`<span class="caret" style="height:${h}px;background:${col};opacity:${on?1:0}"></span>`;
+const fill=c=>`<div class="L" style="background:${c}"></div>`;
+const hline=(y,x0,x1,col,op=1,w=1.5)=>`<div class="gl" style="left:${x0}px;top:${y}px;width:${Math.max(0,x1-x0)}px;height:${w}px;color:${col};opacity:${op}"></div>`;
+const vline=(x,y0,y1,col,op=1,w=1.5)=>`<div class="gl" style="left:${x}px;top:${y0}px;height:${Math.max(0,y1-y0)}px;width:${w}px;color:${col};opacity:${op}"></div>`;
+const node=(x,y,col,op=1,bgc='transparent')=>`<div class="node" style="left:${x}px;top:${y}px;color:${col};opacity:${op};background:${bgc}"></div>`;
+const mono=(x,y,txt,col,size=15,op=1,extra='')=>`<div class="a mono" style="left:${x}px;top:${y}px;font-size:${size}px;color:${col};opacity:${op};white-space:nowrap;${extra}">${txt}</div>`;
+const glow=(x,y,r,col,op)=>`<div class="a" style="left:${x-r}px;top:${y-r}px;width:${2*r}px;height:${2*r}px;border-radius:50%;background:radial-gradient(circle,${col} 0%,transparent 65%);opacity:${op}"></div>`;
+
+// staggered per-letter rise (mask reveal)
+function rise(txt,t,start,{stag=.035,dur=.45,dy=1.0,blur=true}={}){
+  return [...txt].map((ch,i)=>{const k=eo5(P(t,start+i*stag,start+i*stag+dur));
+    return `<span class="ch" style="transform:translateY(${(1-k)*dy*100}%);opacity:${k};${blur?`filter:blur(${(1-k)*8}px)`:''}">${ch===' '?'&nbsp;':ch}</span>`;}).join('');
+}
+const maskLine=(inner,extra='')=>`<span style="display:inline-block;overflow:hidden;padding:0 .04em .08em;vertical-align:top;${extra}">${inner}</span>`;
+
+// ---------- persistent image layers ----------
+const PH=$('photo'), SI=$('sil'), OL=$('outline'), OP=$('outPath');
+let OUT={w:1433,h:1881,d:''}, OLEN=1;
+function placeImg(el,{x,y,w,op=1,filter='none',blend='normal',clip='none',show=true,z=''}){
+  if(!show){el.style.display='none';return;}
+  const h=w*OUT.h/OUT.w;
+  Object.assign(el.style,{display:'block',left:x+'px',top:y+'px',width:w+'px',height:h+'px',opacity:op,filter,mixBlendMode:blend,clipPath:clip,zIndex:z});
+}
+function hideImgs(){PH.style.display='none';SI.style.display='none';OL.style.display='none';}
+
+// ---------- tool icons for the floating toolbar ----------
+const IC={
+ cursor:'<path d="M5 3l14 7-6 2-2 6z" fill="currentColor"/>',
+ frame:'<path d="M7 3v18M17 3v18M3 7h18M3 17h18"/>',
+ pen:'<path d="M12 19l7-7-7-9-7 9z M12 3v8"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/>',
+ shape:'<rect x="4" y="4" width="16" height="16" rx="2"/>',
+ text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',
+ hand:'<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11V4.5a1.5 1.5 0 0 1 3 0V12M14 11.5V6a1.5 1.5 0 0 1 3 0v8c0 4-2.5 7-6 7-3 0-4.5-2-6-4l-2-3c-.8-1.3.8-2.6 2-1.5L8 15"/>',
+ comment:'<path d="M4 20l1.5-4A8 8 0 1 1 9 19.5z"/>',
+ ai:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" fill="currentColor"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" fill="currentColor"/>',
+ code:'<path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/>',
+};
+const icon=(n,x,y,s,col)=>`<svg class="a" style="left:${x-s/2}px;top:${y-s/2}px;color:${col}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+
+// ---------- HUD (persistent, minimal) ----------
+const CHAPTERS=[[0,'Intro'],[5.9,'Role'],[9.8,'Mindset'],[15.5,'Disciplines'],[21.6,'Identity'],[26.3,'Rimon']];
+function hud(t,dark){
+  const col=dark?'rgba(255,255,255,.55)':'rgba(11,11,12,.5)';
+  let ci=0; CHAPTERS.forEach((c,i)=>{if(t>=c[0])ci=i;});
+  let h='';
+  const cm=(x,y,sx,sy)=>`<div class="a" style="left:${x}px;top:${y}px;width:26px;height:26px;border-${sy}:2px solid ${col};border-${sx}:2px solid ${col}"></div>`;
+  h+=cm(44,64,'left','top')+cm(1010,64,'right','top')+cm(44,1830,'left','bottom')+cm(1010,1830,'right','bottom');
+  h+=mono(86,70,`${STUDIO} — ${NAME}`,col,14);
+  h+=`<div class="a mono" style="right:86px;top:70px;font-size:14px;color:${col};white-space:nowrap">0${ci+1} / 0${CHAPTERS.length} · ${CHAPTERS[ci][1]}</div>`;
+  // progress bar
+  h+=`<div class="a" style="left:86px;top:1846px;width:908px;height:2px;background:${col};opacity:.35"></div>`;
+  h+=`<div class="a" style="left:86px;top:1846px;width:${908*t/TOTAL}px;height:2px;background:${C.red}"></div>`;
+  return h;
+}
+
+// =====================================================================
+//  SCENES — each returns {bg, fg, dark}
+// =====================================================================
+function grid(t,col,op,g){
+  let h='';const Y1=870,Y2=1070;
+  h+=hline(Y1,540-540*g,540+540*g,col,op)+hline(Y2,540-540*g,540+540*g,col,op);
+  [160,920].forEach(x=>{h+=vline(x,960-560*g,960+560*g,col,op*.6);});
+  return h;
+}
+function sOpen(t){ // 0 – 1.3 dark, cursor, He
+  let bg=fill(C.dark)+glow(540,960,700,'rgba(254,55,11,.18)',eo(P(t,0,1.2)));
+  const g=eio(P(t,.05,.75)); bg+=grid(t,'#fff',.14,g);
+  [160,920].forEach((x,i)=>{const o=P(t,.5+i*.08,.7+i*.08);bg+=node(x,870,'#fff',o*.5,C.dark)+node(x,1070,'#fff',o*.5,C.dark);});
+  const s='He'.slice(0,t<.82?0:t<1.0?1:2);
+  const fg=`<div class="a c" style="top:885px;font-size:210px;font-weight:700;letter-spacing:-0.04em;color:#fff;line-height:1">${s}${caret(160,C.red,t>.82||blink(t))}</div>`;
+  return {bg,fg,dark:true};
+}
+function sHello(t){ // 1.3 – 2.25
+  let bg=fill(C.paper)+grid(t,'#9c9993',.45,1);
+  [160,920].forEach(x=>{bg+=node(x,870,'#9c9993',1,C.paper)+node(x,1070,'#9c9993',1,C.paper);});
+  bg+=mono(170,1082,'Funnel Display · 700',C.mute,12)+mono(796,846,'210 / -4%',C.mute,12);
+  const n=2+nTyped(3,t,1.3,7.5); const dk=spring(P(t,1.82,2.12));
+  const fg=`<div class="a c" style="top:885px;font-size:210px;font-weight:700;letter-spacing:-0.04em;color:${C.ink};line-height:1">${'Hello'.slice(0,n)}<span style="display:inline-block;width:44px;height:44px;border-radius:50%;background:${C.red};margin-left:10px;transform:scale(${dk})"></span>${dk<.05?caret(160,C.red):''}</div>`;
+  return {bg,fg};
+}
+function sIntro(t){ // 2.25 – 5.9
+  let bg=fill(C.paper), fg='';
+  bg+=hline(870,0,1080,'#c9c6c1',.6*(1-P(t,2.25,2.6)))+hline(1070,0,1080,'#c9c6c1',.6*(1-P(t,2.25,2.6)));
+  // I'm big -> eyebrow
+  const m=eio(P(t,2.55,2.85));
+  const imY=lerp(885,560,m), imS=lerp(210,64,m);
+  if(t<4.55) fg+=`<div class="a c" style="top:${imY}px;font-size:${imS}px;font-weight:${m>.5?500:700};letter-spacing:-0.03em;color:${C.ink};line-height:1">${t<2.55?rise('I’m',t,2.25,{stag:.04}):'I’m'}</div>`;
+  // name typed big
+  let nm=NAME.slice(0,nTyped(NAME.length,t,2.9,10));
+  if(t>4.3) nm=NAME.slice(0,Math.max(0,NAME.length-nTyped(NAME.length,t,4.3,22)));
+  if(t>2.85 && t<4.55) fg+=`<div class="a c" style="top:640px;font-size:250px;font-weight:700;letter-spacing:-0.05em;color:${C.ink};line-height:1">${nm}${caret(190,C.red,t<3.45||blink(t))}</div>`;
+  // title pill
+  const pk=eo5(P(t,3.5,3.9))*(1-eio(P(t,4.25,4.45)));
+  if(pk>0) fg+=`<div class="a" style="left:50%;top:925px;transform:translateX(-50%) translateY(${(1-pk)*30}px) scale(${lerp(.9,1,pk)});opacity:${pk};display:flex;gap:14px;align-items:center;background:${C.ink};color:#fff;border-radius:999px;padding:16px 30px 16px 18px;font-size:30px;font-weight:500;white-space:nowrap">
+    <span style="width:14px;height:14px;border-radius:50%;background:${C.red};box-shadow:0 0 0 6px rgba(254,55,11,.25)"></span>${TITLE} <span style="opacity:.5">· ${STUDIO}</span></div>`;
+  // silhouette: pen draws outline 3.4–4.3, fill 4.3–4.55, photo scan reveal 4.6–5.2, slides down 5.55–5.9
+  const W=760, X=540-W/2, H=W*OUT.h/OUT.w, Y=1920-H+40;
+  const down=eio(P(t,5.55,5.9))*H;
+  const draw=eio(P(t,3.35,4.35));
+  if(t>3.35){
+    Object.assign(OL.style,{display:'block',left:X+'px',top:Y+down+'px',width:W+'px',height:H+'px'});
+    OL.setAttribute('viewBox',`0 0 ${OUT.w} ${OUT.h}`);
+    OP.setAttribute('stroke',C.red);OP.setAttribute('stroke-width',5);
+    OP.style.strokeDasharray=OLEN; OP.style.strokeDashoffset=OLEN*(1-draw); OL.style.opacity=1-P(t,4.35,4.6);
+    const f=eo(P(t,4.25,4.6));
+    const scan0=eio(P(t,4.65,5.25)); placeImg(SI,{x:X,y:Y+down,w:W,op:f,clip:`inset(0 0 ${scan0*100}% 0)`});
+    const scan=eio(P(t,4.65,5.25));
+    if(scan>0){ placeImg(PH,{x:X,y:Y+down,w:W,op:1,filter:'grayscale(1) contrast(1.15)',clip:`inset(${(1-scan)*100}% 0 0 0)`});
+      if(scan<1) fg+=`<div class="a" style="left:${X}px;top:${Y+down+H*(1-scan)-2}px;width:${W}px;height:4px;background:${C.red};box-shadow:0 0 30px ${C.red}"></div>`;
+    }
+    if(draw>0&&draw<1){const p=OP.getPointAtLength(OLEN*draw);const sx=X+p.x*W/OUT.w, sy=Y+p.y*H/OUT.h;
+      fg+=`<div class="a" style="left:${sx-9}px;top:${sy-9}px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid ${C.red}"></div>`+mono(sx+18,sy-34,'Pen',C.red,12);}
+    if(t>3.4&&t<4.6) fg+=mono(86,1300,`Vector · ${NAME.toLowerCase()}.svg`,C.mute,12,1-P(t,4.4,4.6));
+  }
+  // I'm your
+  if(t>4.55){
+    const s='I’m your'; const n=nTyped(s.length,t,4.6,15);
+    fg+=`<div class="a c" style="top:640px;font-size:150px;font-weight:600;letter-spacing:-0.04em;color:${C.ink};line-height:1">${s.slice(0,n).replace('your','<span style="font-weight:300">your</span>').replace('you','<span style="font-weight:300">you</span>').replace('yo','<span style="font-weight:300">yo</span>')}${caret(120,C.red,blink(t))}</div>`;
+  }
+  return {bg,fg};
+}
+function sRoles(t){ // 5.9 – 8.7, each role uses a different transition
+  const looks=[[C.paper,C.ink,C.red],[C.dark,'#fff',C.red],[C.cream,C.ink,C.red],[C.red,'#fff',C.ink]];
+  const seg=(8.7-5.9)/4, i=Math.min(3,Math.floor((t-5.9)/seg)), t0=5.9+i*seg, k=P(t,t0,t0+.32);
+  const [b,f,acc]=looks[i]; const prev=i>0?looks[i-1]:null;
+  let bg='', fg='';
+  const role=(j,col,dy=0,op=1)=>{const [a,w]=ROLES[j];return `<div class="a c" style="top:${880+dy}px;font-size:118px;letter-spacing:-0.04em;color:${col};opacity:${op};line-height:1">${maskLine(`<span style="font-weight:300">${a}</span>`)} ${maskLine(`<span style="font-weight:700">${w}</span>`)}</div>`;};
+  if(i===0){ bg=fill(b); fg+=`<div class="a c" style="top:880px;font-size:118px;letter-spacing:-0.04em;color:${f};line-height:1"><span style="font-weight:300">${rise(ROLES[0][0],t,5.9)}</span> <span style="font-weight:700">${rise(ROLES[0][1],t,6.05)}</span></div>`; }
+  else{
+    bg=fill(prev[0]);
+    const e=eexp(k);
+    if(i===1){ // circle reveal from center
+      bg+=`<div class="L" style="background:${b};clip-path:circle(${e*120}% at 50% 50%)"></div>`;
+    } else if(i===2){ // shutter slats
+      bg+=[0,1,2,3,4].map(s=>`<div class="a" style="left:0;top:${s*384}px;width:1080px;height:384px;background:${b};transform:scaleX(${eexp(clamp((k*1.6)-s*.12))});transform-origin:${s%2?'right':'left'}"></div>`).join('');
+    } else { // vertical push
+      bg+=`<div class="L" style="background:${b};transform:translateY(${(1-e)*100}%)"></div>`;
+    }
+    if(k<1) fg+=`<div class="L" style="clip-path:inset(0 0 0 0)">${role(i-1,prev[1],-e*90,1-e)}</div>`;
+    const r=eo5(P(t,t0+.08,t0+.42)); fg+=role(i,f,(1-r)*110,r);
+  }
+  // index + label
+  fg+=mono(86,830,`Role — 0${i+1}`,f,15,.6)+`<div class="a" style="left:86px;top:1150px;display:flex;gap:10px">${ROLES.map((_,j)=>`<div style="width:${j===i?54:18}px;height:6px;border-radius:3px;background:${j===i?acc:f};opacity:${j===i?1:.25}"></div>`).join('')}</div>`;
+  return {bg,fg,dark:i===1||i===3};
+}
+function sChip(t){ // 8.7 – 9.8: name -> profile chip with avatar
+  let bg=fill(C.paper), fg='';
+  const a=eo5(P(t,8.7,9.0)), k=eio(P(t,9.15,9.5));
+  const size=lerp(250,46,k);
+  // chip container grows around the name
+  const cw=lerp(0,430,k), ch=lerp(0,104,k);
+  if(k>0) fg+=`<div class="a" style="left:${540-cw/2}px;top:${960-ch/2}px;width:${cw}px;height:${ch}px;border-radius:999px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,${.12*k}),0 0 0 1px rgba(0,0,0,.06)"></div>`;
+  fg+=`<div class="a c" style="top:${960-size*.55}px;font-size:${size}px;font-weight:700;letter-spacing:-0.045em;color:${C.ink};line-height:1;transform:translateX(${k*40}px);opacity:${a};filter:blur(${(1-a)*12}px)">${NAME}</div>`;
+  if(k>.6){const o=P(k,.6,1); const ax=540-cw/2+14;
+    placeImg(PH,{x:ax-8,y:960-38,w:76,op:o,filter:'grayscale(1)',clip:'circle(38% at 50% 32%)',z:5});
+    fg+=mono(540+60,940,'● online',C.red,12,o*0)+`<div class="a" style="left:${540+cw/2-56}px;top:${960-14}px;width:28px;height:28px;border-radius:50%;background:${C.red};opacity:${o};display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px">✓</div>`;}
+  return {bg,fg};
+}
+function rings(col,op){let h='';[320,540].forEach(r=>{h+=`<div class="a" style="left:${540-r}px;top:${960-r}px;width:${2*r}px;height:${2*r}px;border-radius:50%;border:1.5px solid ${col};opacity:${op}"></div>`;});return h;}
+function sQuote(t){ // 9.8 – 15.5 on red
+  let bg=fill(C.red)+glow(820,560,700,'rgba(255,190,160,.35)',1)+glow(200,1500,600,'rgba(120,10,0,.35)',1)+rings('#fff',.12), fg='';
+  // red circle wipe in from the chip
+  const wi=eexp(P(t,9.8,10.15)); if(wi<1) bg=fill(C.paper)+`<div class="L" style="clip-path:circle(${wi*120}% at 50% 50%)">${bg}</div>`;
+  const sel=(on)=>on?`outline:2px solid #fff;outline-offset:10px;`:'';
+  const handle=(on)=>on?`<i style="position:absolute;left:-16px;top:-16px;width:12px;height:12px;background:${C.red};border:2px solid #fff"></i><i style="position:absolute;right:-16px;bottom:-16px;width:12px;height:12px;background:${C.red};border:2px solid #fff"></i>`:'';
+  const W=(txt,at,{bold=false,box=false,acc=false}={})=>{const k=eo5(P(t,at,at+.35));
+    return `<span style="position:relative;display:inline-block;margin:0 .13em;opacity:${k};transform:translateY(${(1-k)*40}px);filter:blur(${(1-k)*8}px);font-weight:${bold?700:300};color:${acc?C.ink:'#fff'};${sel(box)}">${txt}${handle(box)}</span>`;};
+  const line=(y,html,op=1,size=112)=>`<div class="a c" style="top:${y}px;font-size:${size}px;letter-spacing:-0.04em;line-height:1;opacity:${op}">${html}</div>`;
+  if(t<11.5){
+    fg+=line(850,W('Creativity',10.05)+W('is',10.35,{box:t>10.35&&t<10.75,acc:true}));
+    fg+=line(985,W('like',10.65,{box:t>10.75&&t<11.05})+W('a',10.9)+W('game,',11.05,{box:t>11.05,acc:true}));
+  } else if(t<13.5){
+    // floating toolbar with hopping active state + cursor
+    const ap=eo5(P(t,11.5,11.85)), out=eio(P(t,13.15,13.45));
+    fg+=line(lerp(985,950,eo(P(t,11.5,11.8))),W('like',0,{}));
+    const tools=['cursor','frame','pen','shape','text','hand','comment','ai','code'];
+    const tw=tools.length*92+30, tx=540-tw/2, ty=lerp(760,700,ap)-out*40;
+    fg+=`<div class="a" style="left:${tx}px;top:${ty}px;width:${tw}px;height:112px;border-radius:30px;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.35);box-shadow:0 30px 60px rgba(90,10,0,.35),inset 0 1px 0 rgba(255,255,255,.4);backdrop-filter:blur(10px);opacity:${ap*(1-out)};transform:scale(${lerp(.9,1,ap)})"></div>`;
+    const hop=Math.min(tools.length-1,Math.floor(P(t,11.75,13.0)*tools.length));
+    const hx=tx+15+hop*92+46;
+    if(ap>.5) fg+=`<div class="a" style="left:${hx-38}px;top:${ty+18}px;width:76px;height:76px;border-radius:20px;background:#fff;opacity:${(1-out)}"></div>`;
+    tools.forEach((n,j)=>{fg+=`<div style="opacity:${ap*(1-out)}">${icon(n,tx+15+j*92+46,ty+56,40,j===hop?C.red:'#fff')}</div>`;});
+    // tool name tooltip
+    if(ap>.5&&out<.5) fg+=`<div class="a mono" style="left:${hx}px;top:${ty+128}px;transform:translateX(-50%);font-size:14px;color:${C.ink};background:#fff;border-radius:8px;padding:6px 10px;white-space:nowrap">${['Move','Frame','Pen','Shape','Text','Hand','Comment','AI','Code'][hop]}</div>`;
+    // cursor following
+    const cx=hx+40, cy=ty+150;
+    fg+=`<svg class="a" style="left:${cx}px;top:${cy}px;opacity:${ap*(1-out)}" width="44" height="44" viewBox="0 0 24 24"><path d="M3 2l7 19 2.6-7.4L20 11z" fill="${C.ink}" stroke="#fff" stroke-width="1.4"/></svg>`;
+  } else if(t<14.5){
+    fg+=line(850,W('and',13.5)+W('yes,',13.62)+W('we',13.74));
+    fg+=line(950,W('like',0)+W('to',13.9,{bold:true})+W('play.',14.02,{bold:true}));
+  } else {
+    const a=eio(P(t,14.5,14.85)), b=eio(P(t,15.15,15.5)), fade=1-P(t,14.5,14.65);
+    if(fade>0){fg+=line(850,W('and',0)+W('yes,',0)+W('we',0),fade);fg+=line(950,`<span style="font-weight:300;color:#fff">like </span><span style="opacity:0;font-weight:700">to play.</span>`,fade);}
+    const size=lerp(112,190,a)*lerp(1,.34,b);
+    fg+=`<div class="a" style="left:${lerp(540,86,b)}px;top:${lerp(lerp(950,880,a),930,b)}px;transform:translateX(${-50*(1-b)}%);font-size:${size}px;font-weight:700;letter-spacing:-0.045em;color:#fff;white-space:nowrap;line-height:1">to play<span style="color:${C.ink}">${b>.5?' ●':'.'}</span></div>`;
+  }
+  return {bg,fg,dark:true};
+}
+function sWheel(t){ // 15.5 – 21.65
+  let bg=fill(C.red)+glow(820,560,700,'rgba(255,190,160,.35)',1)+glow(200,1500,600,'rgba(120,10,0,.35)',1)+rings('#fff',.08), fg='';
+  fg+=`<div class="a" style="left:86px;top:930px;font-size:64px;font-weight:700;letter-spacing:-0.045em;color:#fff;white-space:nowrap;line-height:1">to play<span style="color:${C.ink}"> ●</span></div>`;
+  const st=15.8, sd=.42, n=(t-st)/sd, whole=Math.floor(Math.max(0,n)), frac=n<0?0:eio(clamp((n-whole)/.55)), pos=whole+frac;
+  const L=DISCIPLINES.length, R=330, step=Math.PI/8.5, appear=eo(P(t,15.5,15.95));
+  // selection band
+  fg+=`<div class="a" style="left:330px;top:${962-48}px;width:700px;height:96px;border-radius:20px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);opacity:${appear}"></div>`;
+  for(let k=-6;k<=6;k++){
+    const idx=Math.round(pos)+k, item=DISCIPLINES[((idx%L)+L)%L], th=(idx-pos)*step;
+    if(Math.abs(th)>Math.PI/2.1) continue;
+    const y=962+Math.sin(th)*R, z=Math.cos(th), act=Math.abs(idx-pos)<.5, fin=t>21.05&&act;
+    fg+=`<div class="a" style="left:360px;top:${y-38}px;font-size:62px;line-height:76px;letter-spacing:-0.035em;white-space:nowrap;color:${fin?C.ink:'#fff'};font-weight:${act?600:300};opacity:${appear*(act?1:Math.pow(z,2.4)*.5)};transform:perspective(1000px) rotateX(${-th*57.3}deg) scale(${.82+.18*z});transform-origin:left center">${item}</div>`;
+  }
+  const cur=((Math.round(pos)%L)+L)%L+1;
+  fg+=mono(86,840,'Disciplines','#fff',15,.7*appear)+`<div class="a" style="left:86px;top:1030px;font-size:30px;font-weight:500;color:#fff;opacity:${.8*appear}">${String(cur).padStart(2,'0')}<span style="opacity:.45"> / ${L}</span></div>`;
+  return {bg,fg,dark:true};
+}
+// ---------- identity montage (cut on the beat) ----------
+const nm=(col,size=150,extra='')=>`<div class="a c" style="top:${960-size*.56}px;font-size:${size}px;font-weight:700;letter-spacing:-0.045em;color:${col};line-height:1;${extra}">${NAME}</div>`;
+const CARDS=[
+ // 0 portrait duotone on red
+ ()=>({bg:fill(C.red),img:{el:PH,x:160,w:760,yb:0,filter:'grayscale(1) contrast(1.3) brightness(1.05)',blend:'multiply'},fg:nm('#fff',190,'top:300px')+mono(86,1700,`${TITLE} — 2026`,'#fff',15)}),
+ // 1 giant cropped type poster
+ ()=>({bg:fill(C.ink),fg:`<div class="a" style="left:-60px;top:560px;font-size:520px;font-weight:800;letter-spacing:-0.06em;color:${C.red};line-height:.8;white-space:nowrap">${NAME}</div><div class="a" style="left:-30px;top:1000px;font-size:520px;font-weight:800;letter-spacing:-0.06em;color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.5);line-height:.8;white-space:nowrap">${NAME}</div>`,dark:true}),
+ // 2 specimen card
+ ()=>({bg:fill(C.cream),fg:`<div class="a" style="left:86px;top:520px;width:908px;height:880px;border-radius:36px;background:#fff;box-shadow:0 30px 80px rgba(0,0,0,.08)"></div>`+mono(130,570,'Typeface',C.mute,13)+`<div class="a" style="left:126px;top:620px;font-size:300px;font-weight:700;letter-spacing:-0.05em;color:${C.ink};line-height:1">Aa</div>`+`<div class="a" style="left:130px;top:1000px;font-size:58px;font-weight:600;color:${C.ink}">Funnel Display</div>`+[C.red,C.ink,C.paper,C.cream].map((c,j)=>`<div class="a" style="left:${130+j*120}px;top:1220px;width:96px;height:96px;border-radius:50%;background:${c};border:1px solid rgba(0,0,0,.1)"></div>`).join('')+mono(640,1260,'#FE370B',C.red,15)}),
+ // 3 dark with red light beam + name
+ ()=>({bg:fill(C.dark)+`<div class="L" style="background:conic-gradient(from 75deg at 50% -10%,transparent 0deg,rgba(254,55,11,.0) 10deg,rgba(254,55,11,.55) 20deg,transparent 32deg);filter:blur(30px)"></div>`,fg:nm('#fff'),dark:true}),
+ // 4 grid/spec card
+ ()=>({bg:fill(C.paper)+[220,860].map(x=>vline(x,0,1920,'#c7c4bf',.9)).join('')+hline(860,0,1080,'#c7c4bf',.9)+hline(1060,0,1080,'#c7c4bf',.9),fg:`<div class="a" style="left:300px;top:820px;width:480px;height:280px;border:2px solid ${C.red}"></div>`+[[300,820],[780,820],[300,1100],[780,1100]].map(([x,y])=>`<div class="a" style="left:${x-7}px;top:${y-7}px;width:14px;height:14px;background:#fff;border:2px solid ${C.red}"></div>`).join('')+`<div class="a mono" style="left:300px;top:784px;font-size:12px;color:#fff;background:${C.red};padding:4px 8px">Hug × 480</div>`+nm(C.ink)}),
+ // 5 red poster with message
+ ()=>({bg:fill(C.red),fg:mono(86,500,'Good design<br>deserves to ship.','#fff',22,1,'line-height:1.7')+nm('#fff',170)+mono(86,1420,`${STUDIO} · ${TITLE}`,'#fff',14,.8)+`<div class="a" style="left:86px;top:1500px;width:908px;height:60px;background:repeating-linear-gradient(90deg,${C.ink} 0 40px,transparent 40px 56px)"></div>`,dark:true}),
+ // 6 portrait on dark with red rim
+ ()=>({bg:fill(C.ink)+glow(540,1300,700,'rgba(254,55,11,.55)',1),img:{el:PH,x:140,w:800,yb:0,filter:'grayscale(1) contrast(1.2)',blend:'screen'},fg:nm('#fff',150,'top:330px'),dark:true}),
+ // 7 tilted cards stack
+ ()=>({bg:fill(C.paper),fg:[[-12,C.ink],[-5,C.cream],[3,C.red]].map(([r,c],j)=>`<div class="a" style="left:150px;top:680px;width:780px;height:540px;border-radius:32px;background:${c};transform:rotate(${r}deg);box-shadow:0 30px 60px rgba(0,0,0,.15)"></div>`).join('')+nm('#fff',150,'transform:rotate(3deg)')+mono(220,1110,TITLE,'#fff',13,.85,'transform:rotate(3deg)')}),
+ // 8 orbit rings
+ ()=>({bg:fill(C.red),fg:[220,340,460].map(r=>`<div class="a" style="left:${540-r}px;top:${960-r}px;width:${2*r}px;height:${2*r}px;border-radius:50%;border:2px solid rgba(255,255,255,.5)"></div>`).join('')+[[540,500],[880,1100],[220,1240]].map(([x,y])=>`<div class="a" style="left:${x-12}px;top:${y-12}px;width:24px;height:24px;border-radius:50%;background:${C.ink}"></div>`).join('')+nm('#fff'),dark:true}),
+ // 9 split ink/red with photo cut
+ ()=>({bg:`<div class="L" style="background:linear-gradient(90deg,${C.ink} 0 50%,${C.red} 50% 100%)"></div>`,img:{el:SI,x:140,w:800,yb:0,filter:'none',blend:'normal'},fg:nm('#fff',170,'top:360px'),dark:true}),
+ // 10 chip / profile card
+ ()=>({bg:fill(C.cream),fg:`<div class="a" style="left:140px;top:700px;width:800px;height:520px;border-radius:40px;background:#fff;box-shadow:0 40px 90px rgba(0,0,0,.12)"></div>`+`<div class="a" style="left:200px;top:760px;width:150px;height:150px;border-radius:50%;background:${C.ink};overflow:hidden"></div>`+`<div class="a" style="left:200px;top:960px;font-size:96px;font-weight:700;letter-spacing:-0.04em;color:${C.ink}">${NAME}</div>`+`<div class="a" style="left:204px;top:1080px;font-size:32px;color:${C.mute}">${TITLE}</div>`+`<div class="a" style="left:640px;top:780px;background:${C.red};color:#fff;font-size:24px;font-weight:600;border-radius:999px;padding:12px 26px">Available</div>`,img:{el:PH,x:182,w:186,y:752,filter:'grayscale(1)',blend:'normal',clip:'circle(37% at 50% 30%)',z:5}}),
+ // 11 big outline name on red
+ ()=>({bg:fill(C.red),fg:[-330,0,330].map((dy,j)=>`<div class="a c" style="top:${820+dy}px;font-size:300px;font-weight:800;letter-spacing:-0.05em;line-height:1;color:${j===1?'#fff':'transparent'};-webkit-text-stroke:${j===1?0:2.5}px rgba(255,255,255,.7)">${NAME}</div>`).join(''),dark:true}),
+];
+const SEQ=[0,1,2,3,4,5,6,7,8,9,10,11,0,3,6,1,5];
+function sMontage(t){
+  const dur=(26.3-21.65)/SEQ.length, i=Math.min(SEQ.length-1,Math.floor((t-21.65)/dur)), lt=t-(21.65+i*dur);
+  const c=CARDS[SEQ[i]]();
+  if(c.img){const {el,x,w,yb,y,filter,blend,clip,z}=c.img;const h=w*OUT.h/OUT.w;placeImg(el,{x,y:y!==undefined?y:1920-h+(yb||0),w,filter,blend,clip:clip||'none',z:z||''});}
+  // punch-in on each cut
+  const z=lerp(1.06,1,eo5(clamp(lt/dur)));
+  return {bg:c.bg,fg:c.fg,dark:c.dark,zoom:z};
+}
+function sOutro(t){ // 26.3 – 30
+  let bg=fill(C.dark)+glow(540,960,800,'rgba(254,55,11,.22)',eo(P(t,26.3,27))), fg='';
+  const a=eo5(P(t,26.3,26.8)), up=eio(P(t,26.9,27.25));
+  fg+=`<div class="a c" style="top:${lerp(860,800,up)}px;font-size:220px;font-weight:700;letter-spacing:-0.05em;color:#fff;line-height:1">${rise(NAME,t,26.3,{stag:.05,dur:.55})}<span style="color:${C.red};display:inline-block;transform:scale(${spring(P(t,26.7,27.1))})">.</span></div>`;
+  const sub=`${TITLE} · ${STUDIO}`, n=nTyped(sub.length,t,27.2,28);
+  fg+=`<div class="a c mono" style="top:1030px;font-size:24px;font-weight:500;color:#a3a3a8">${sub.slice(0,n)}${t>27.2&&t<29?caret(26,C.red,blink(t)):''}</div>`;
+  const cta=eo5(P(t,28.1,28.5));
+  fg+=`<div class="a" style="left:50%;top:1120px;transform:translateX(-50%) translateY(${(1-cta)*20}px);opacity:${cta};display:flex;gap:14px;align-items:center;background:${C.red};color:#fff;border-radius:999px;padding:20px 36px;font-size:32px;font-weight:600;white-space:nowrap">Let’s build something great <span style="font-size:36px">→</span></div>`;
+  const g=eio(P(t,27.6,28.3)); bg+=grid(t,'#fff',.12,g);
+  const o=P(t,29.45,30); if(o>0) fg+=`<div class="L" style="background:${C.dark};opacity:${o}"></div>`;
+  return {bg,fg,dark:true};
+}
+
+function render(t){
+  hideImgs();
+  let r;
+  if(t<1.3) r=sOpen(t);
+  else if(t<2.25) r=sHello(t);
+  else if(t<5.9) r=sIntro(t);
+  else if(t<8.7) r=sRoles(t);
+  else if(t<9.8) r=sChip(t);
+  else if(t<15.5) r=sQuote(t);
+  else if(t<21.65) r=sWheel(t);
+  else if(t<26.3) r=sMontage(t);
+  else r=sOutro(t);
+  $('bgL').innerHTML=r.bg; $('fgL').innerHTML=r.fg; $('hudL').innerHTML=hud(t,!!r.dark);
+  $('stage').style.transform=r.zoom?`scale(${r.zoom})`:'none';
+}
+window.render=render; window.TOTAL=TOTAL;
+Promise.all([document.fonts.load('700 100px "Funnel Display"'),document.fonts.load('300 100px "Funnel Display"'),document.fonts.load('500 100px "Funnel Display"'),document.fonts.load('600 100px "Funnel Display"'),document.fonts.load('800 100px "Funnel Display"'),
+  PH.decode(),SI.decode(),fetch('assets/outline.json').then(r=>r.json()).then(j=>{OUT=j;OP.setAttribute('d',j.d);OLEN=OP.getTotalLength();})])
+ .then(()=>document.fonts.ready).then(()=>{window.READY=true;render(0);});
+if(location.search.includes('play')){const t0=performance.now();(function l(){if(window.READY)render(((performance.now()-t0)/1000)%TOTAL);requestAnimationFrame(l)})();}
+</script>
+</body>
+</html>

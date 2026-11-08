@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rimon — personal brand reel (Gr8r Studio palette)</title>
+<style>
+  :root{
+    --flame:#FE370B; --ink:#0B0B0C; --dark:#181818; --paper:#F5F5F4; --cream:#F9F3EB; --graphite:#6E6E73;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1920px;overflow:hidden;background:#000}
+  body{font-family:'Inter Display','Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden}
+  .a{position:absolute}
+  .full{position:absolute;inset:0}
+  .mono{font-family:'JetBrains Mono','DejaVu Sans Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
+  .c{left:0;width:1080px;text-align:center;white-space:nowrap}
+  .caret{display:inline-block;width:6px;background:var(--flame);vertical-align:-0.08em;margin-left:6px}
+  .br{position:relative}
+  .br::before,.br::after{content:'';position:absolute;top:-4px;bottom:-4px;width:12px;border:3px solid currentColor}
+  .br::before{left:-14px;border-right:none}
+  .br::after{right:-14px;border-left:none}
+  .gl{position:absolute;background:currentColor}
+  .node{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:2px solid currentColor}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+// =====================================================================
+//  EDIT COPY HERE
+// =====================================================================
+const NAME      = 'Rimon';
+const SUB       = 'AI Design Engineer · Gr8r Studio';
+const ROLES     = [['AI Design','Engineer'],['Product','Designer'],['UI/UX','Designer'],['Creative','Partner']];
+const DISCIPLINES = ['AI Product Design','UI/UX Design','Design Systems','Web Design','Mobile Apps','Prototyping',
+                     'AI Agents','Front-end Code','Brand Identity','Motion Design','Product Strategy'];
+const TOTAL = 30;
+// palette roles (reference blue -> Gr8r flame red, reference orange -> cream with flame graphics)
+const C = {paper:'#F5F5F4', dark:'#181818', ink:'#0B0B0C', red:'#FE370B', cream:'#F9F3EB', white:'#FFFFFF'};
+
+// =====================================================================
+const S = document.getElementById('stage');
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const P=(t,a,b)=>clamp((t-a)/(b-a));
+const lerp=(a,b,k)=>a+(b-a)*k;
+const eo=k=>1-Math.pow(1-k,3);
+const eio=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+const eexp=k=>k>=1?1:1-Math.pow(2,-10*k);
+const blink=t=>Math.floor(t*2.6)%2===0;
+const typed=(s,t,a,cps=14)=>s.slice(0,Math.floor(clamp((t-a)*cps,0,s.length)));
+const caret=(h,on=true,col=C.red)=>`<span class="caret" style="height:${h}px;background:${col};opacity:${on?1:0}"></span>`;
+const bg=c=>`<div class="full" style="background:${c}"></div>`;
+const grain=()=>`<div class="full" style="background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.06),rgba(0,0,0,.08));pointer-events:none"></div>`;
+
+// ---------- silhouette (same procedural profile as v1) ----------
+function silPath(){
+  const pts=[];const add=(x,y)=>pts.push([x,y]);
+  add(560,1080);add(640,1000);add(760,935);add(880,880);add(905,800);add(900,720);add(870,660);add(850,600);
+  const cx=1000,cy=450,N=44;
+  for(let i=0;i<=N;i++){const a=lerp(Math.PI*.93,Math.PI*2.07,i/N);
+    const r=200+26*Math.abs(Math.sin(i*.55))+8*Math.sin(i*.23)+(i>N*.78?-24*(i-N*.78)/(N*.22):0);
+    add(cx+Math.cos(a)*r*1.02,cy+Math.sin(a)*r*.98-20);}
+  [[1158,395],[1166,440],[1180,470],[1176,490],[1200,540],[1206,560],[1182,572],[1186,592],[1174,604],[1180,622],[1166,640],[1160,668],
+   [1132,690],[1090,700],[1062,710],[1060,790],[1090,860],[1220,910],[1340,960],[1420,1030],[1450,1080]].forEach(p=>add(...p));
+  let d=`M${pts[0]}`;
+  for(let i=0;i<pts.length-1;i++){const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+    d+=` C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)},${(p1[1]+(p2[1]-p0[1])/6).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)},${(p2[1]-(p3[1]-p1[1])/6).toFixed(1)} ${p2[0]},${p2[1]}`;}
+  return d+' L560,1080 Z';
+}
+const SIL=silPath();
+const silhouette=(dy,col=C.ink)=>`<svg class="a" style="left:0;top:0" width="1080" height="1920"><g transform="translate(${540-1005*.62} ${1920-1080*.62+dy}) scale(.62)"><path d="${SIL}" fill="${col}"/></g></svg>`;
+
+// ---------- tool icons (24px grid, stroke) ----------
+const IC={
+ pen:'<path d="M4 20l3-8 8-8 5 5-8 8z M7 12l5 5"/>',
+ move:'<path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/>',
+ cursor:'<path d="M5 3l14 7-6 2-2 6z" fill="currentColor"/>',
+ text:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 16l3-8 3 8M9 13.5h4M16 11v5"/>',
+ brush:'<path d="M20 4l-9 9M4 20c3 0 5-1 5-4 0-1.5 1-2.5 2.5-2.5S14 15 13 17c-1 2-4 3-9 3z"/>',
+ eraser:'<path d="M3 16l9-9 6 6-6 6H7zM12 19h9"/>',
+ transform:'<rect x="5" y="5" width="14" height="14"/><rect x="3" y="3" width="4" height="4" fill="currentColor"/><rect x="17" y="3" width="4" height="4" fill="currentColor"/><rect x="3" y="17" width="4" height="4" fill="currentColor"/><rect x="17" y="17" width="4" height="4" fill="currentColor"/>',
+ swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',
+ flip:'<path d="M12 3v18M10 6L3 19h7zM14 6l7 13h-7z" />',
+ rotate:'<path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4"/>',
+ zoom:'<circle cx="10" cy="10" r="6"/><path d="M15 15l6 6"/>',
+ rect:'<rect x="4" y="4" width="16" height="16" fill="currentColor"/>',
+ tri:'<path d="M12 4l9 16H3z" fill="currentColor"/>',
+ pin:'<path d="M14 3l7 7-3 1-4 4 1 4-2 2-4-4-5 5M8 13l-4-4 2-2 4 1 4-4z" fill="currentColor"/>',
+ type:'<rect x="3" y="3" width="18" height="18" rx="2" fill="currentColor"/><path d="M8 8h8M12 8v9" stroke="#FE370B"/>',
+ drop:'<path d="M14 4l6 6-9 9H5v-6zM12 6l6 6"/>',
+ bucket:'<path d="M5 11l7-7 7 7-7 7zM19 15c1 1.5 2 3 0 4s-2-2.5 0-4z" fill="currentColor"/>',
+ crop:'<path d="M6 2v16h16M2 6h16v16"/>',
+ frame:'<rect x="3" y="3" width="18" height="18"/><rect x="8" y="8" width="8" height="8" fill="currentColor"/>',
+};
+const icon=(n,x,y,s=58,op=1)=>`<svg class="a" style="left:${x-s/2}px;top:${y-s/2}px;opacity:${op};color:#fff" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+const ICON_SETS=[
+ [['pen','move','cursor','text'],['eraser','transform','swap','flip']],
+ [['transform','move','brush','text'],['eraser','pin','swap','flip']],
+ [['transform','move','brush','rect'],['eraser','pin','swap','rotate']],
+ [['transform','zoom','brush','rect'],['tri','pin','swap','rotate']],
+ [['zoom','brush','rect'],['tri','pin','swap']],
+ [['zoom','brush','frame'],['type','pin','swap']],
+ [['crop','brush','frame'],['type','pin','bucket']],
+ [['crop','pen','frame'],['type','drop','bucket']],
+];
+
+// ---------- grid lines helpers ----------
+const hline=(y,x0,x1,col,op=1,w=1.5)=>`<div class="gl" style="left:${x0}px;top:${y}px;width:${Math.max(0,x1-x0)}px;height:${w}px;color:${col};opacity:${op}"></div>`;
+const vline=(x,y0,y1,col,op=1,w=1.5)=>`<div class="gl" style="left:${x}px;top:${y0}px;height:${Math.max(0,y1-y0)}px;width:${w}px;color:${col};opacity:${op}"></div>`;
+const node=(x,y,col,op=1)=>`<div class="node" style="left:${x}px;top:${y}px;color:${col};opacity:${op}"></div>`;
+const label=(x,y,txt,col,size=15,op=1,extra='')=>`<div class="a mono" style="left:${x}px;top:${y}px;font-size:${size}px;color:${col};opacity:${op};white-space:nowrap;${extra}">${txt}</div>`;
+
+// =====================================================================
+//  SCENES
+// =====================================================================
+function sDarkIntro(t){ // 0 - 1.25
+  let h=bg(C.dark);
+  const g=eio(P(t,0.05,0.7)), col='#8a8a8f';
+  const Y1=860,Y2=1060;
+  h+=hline(Y1,540-540*g,540+540*g,col,.45)+hline(Y2,540-540*g,540+540*g,col,.45);
+  [180,420,660,900].forEach((x,i)=>{h+=vline(x,960-500*eio(P(t,.25+i*.05,.9)),960+500*eio(P(t,.25+i*.05,.9)),col,.18);});
+  [180,420,660,900].forEach((x,i)=>{const o=P(t,.4+i*.06,.6+i*.06);h+=node(x,Y1,col,o)+node(x,Y2,col,o);});
+  const txt=t<0.85?'':(t<1.05?'H':'He');
+  h+=`<div class="a c" style="top:${Y1+12}px;font-size:200px;font-weight:700;letter-spacing:-0.045em;color:#fff;line-height:1">${txt}${caret(150,t>0.85||blink(t))}</div>`;
+  return h;
+}
+function sHello(t){ // 1.25 - 2.05
+  let h=bg(C.paper); const col='#a9a6a2';
+  const Y1=860,Y2=1060;
+  h+=hline(Y1,0,1080,col,.6)+hline(Y2,0,1080,col,.6);
+  [180,900].forEach(x=>{h+=vline(x,0,1920,col,.35);h+=node(x,Y1,col)+node(x,Y2,col);});
+  h+=vline(540,780,1140,col,.5)+label(118,1072,'196 px',col,13)+label(905,842,'x 788',col,13)+label(560,1150,'↕ 368',col,13);
+  const s='Hello'.slice(0,clamp(2+Math.floor((t-1.25)/0.13),2,5));
+  const dot=eo(P(t,1.78,1.9));
+  h+=`<div class="a c" style="top:${Y1+12}px;font-size:200px;font-weight:700;letter-spacing:-0.045em;color:${C.ink};line-height:1">${s}<span style="display:inline-block;width:${dot*40}px;height:${dot*40}px;border-radius:50%;background:${C.red};margin-left:${dot*8}px"></span>${dot<1?caret(150,true):''}</div>`;
+  return h;
+}
+function sIntro(t){ // 2.05 - 5.8 : I'm / name / sub / silhouette / I'm your
+  let h=bg(C.paper);
+  // silhouette rises 3.75-4.25, sits, slides down 5.45-5.8
+  const up=eo(P(t,3.7,4.2)), down=eio(P(t,5.45,5.8));
+  if(t>3.7) h+=silhouette(lerp(900,0,up)+down*900);
+  // "I'm" big -> small up
+  const m=eio(P(t,2.5,2.75));
+  const nameStr=NAME;
+  let nameShown='', subShown='';
+  if(t<4.15){ nameShown=typed(nameStr,t,2.8,9); subShown=typed(SUB,t,3.45,40); }
+  else { // backspace delete
+    const del=Math.floor(clamp((t-4.15)*30,0,nameStr.length+SUB.length));
+    nameShown=nameStr.slice(0,Math.max(0,nameStr.length-Math.max(0,del-SUB.length*0)));
+    nameShown=nameStr.slice(0,Math.max(0,nameStr.length-Math.floor(clamp((t-4.15)*22,0,nameStr.length))));
+    subShown=SUB.slice(0,Math.max(0,SUB.length-Math.floor(clamp((t-4.15)*90,0,SUB.length))));
+  }
+  const imOut = t>4.45;
+  if(t<4.6){
+    const sz=lerp(200,84,m), y=lerp(872,700,m);
+    if(!imOut) h+=`<div class="a c" style="top:${y}px;font-size:${sz}px;font-weight:700;letter-spacing:-0.04em;color:${C.ink};line-height:1">I’m</div>`;
+    if(t>2.75) h+=`<div class="a c" style="top:868px;font-size:150px;font-weight:700;letter-spacing:-0.045em;color:${C.ink};line-height:1">${nameShown}${caret(120,t<3.45?true:blink(t))}</div>`;
+    if(subShown) h+=`<div class="a c mono" style="top:1040px;font-size:22px;font-weight:600;color:${C.ink}">${subShown}</div>`;
+  } else {
+    // "I'm your" typed in
+    const s=typed('I’m your',t,4.65,14);
+    h+=`<div class="a c" style="top:880px;font-size:120px;font-weight:700;letter-spacing:-0.04em;color:${C.ink};line-height:1">${s.replace('your','<span style="font-weight:400">your</span>')}${caret(100,blink(t))}</div>`;
+  }
+  return h;
+}
+function sRoles(t){ // 5.8 - 8.65
+  const cols=[[C.paper,C.ink],[C.dark,'#fff'],[C.cream,C.ink],[C.red,'#fff']];
+  const seg=(8.65-5.8)/ROLES.length; const i=Math.min(ROLES.length-1,Math.floor((t-5.8)/seg)); const t0=5.8+i*seg;
+  const [b,fg]=cols[i]; let h=bg(b);
+  // previous panel sliding out to the left (push transition)
+  const k=eexp(P(t,t0,t0+0.28));
+  if(i>0 && k<1){const [pb,pf]=cols[i-1];
+    h+=`<div class="full" style="background:${pb};transform:translateX(${-k*1080}px)">${roleText(ROLES[i-1],pf,1,0)}</div>`;
+    h+=`<div class="full" style="background:${b};transform:translateX(${(1-k)*1080}px)">${roleText(ROLES[i],fg,1,0)}</div>`;
+  } else if(i===0){
+    const r=eo(P(t,5.8,6.1)); h+=roleText(ROLES[0],fg,r,(1-r)*120);
+  } else h+=roleText(ROLES[i],fg,1,0);
+  h+=label(60,140,'Role',fg,15,.7)+label(60,166,`0${i+1} / 0${ROLES.length}`,fg,15,.45);
+  return h;
+}
+function roleText([a,b],fg,op,dy){
+  return `<div class="a c" style="top:${880+dy}px;font-size:104px;letter-spacing:-0.035em;color:${fg};opacity:${op};line-height:1;overflow:visible"><span style="font-weight:400">${a}</span> <span style="font-weight:700">${b}</span></div>`;
+}
+function sNameShrink(t){ // 8.65 - 9.8
+  let h=bg(C.paper); const k=eio(P(t,9.25,9.6)); const sz=lerp(150,44,k);
+  const r=eo(P(t,8.65,8.85));
+  h+=`<div class="a c" style="top:${lerp(868,935,k)}px;font-size:${sz}px;font-weight:700;letter-spacing:-0.04em;color:${C.ink};line-height:1;opacity:${r};filter:blur(${(1-r)*10}px)">${NAME}</div>`;
+  return h;
+}
+function circles(col,op){ // concentric guides used in the red section
+  let h='';
+  [[540,960,330],[540,960,520]].forEach(([x,y,r])=>{h+=`<div class="a" style="left:${x-r}px;top:${y-r}px;width:${2*r}px;height:${2*r}px;border-radius:50%;border:1.5px solid ${col};opacity:${op}"></div>`;});
+  h+=hline(960,0,1080,col,op*.8)+vline(540,0,1920,col,op*.8);
+  return h;
+}
+function sQuote(t){ // 9.8 - 15.5
+  let h=bg(C.red)+circles('#fff',.13);
+  const W=(txt,at,{bold=false,br=false,acc=false}={})=>{
+    const k=eo(P(t,at,at+0.22));
+    return `<span class="${br?'br':''}" style="display:inline-block;opacity:${k};transform:translateY(${(1-k)*30}px);font-weight:${bold?700:300};color:${acc?C.ink:'#fff'};margin:0 .12em">${txt}</span>`;
+  };
+  const line=(y,html,op=1,size=100)=>`<div class="a c" style="top:${y}px;font-size:${size}px;letter-spacing:-0.035em;line-height:1;opacity:${op}">${html}</div>`;
+  if(t<11.45){
+    h+=line(860, W('Creativity',9.85)+W('is',10.15,{br:t<10.45,acc:t<10.45}));
+    h+=line(975, W('like',10.45,{br:t>=10.45&&t<10.75})+W('a',10.75)+W('game,',10.95,{br:t>=10.95,acc:t>=10.95}));
+  } else if(t<13.45){
+    // words around "like" become tools
+    const set=ICON_SETS[Math.min(ICON_SETS.length-1,Math.floor((t-11.45)/0.25))];
+    const pop=eo(P(t,11.45,11.65)), out=P(t,13.1,13.4);
+    h+=line(975-lerp(57,0,eo(P(t,11.45,11.8))), W('like',0), 1);
+    if(t<13.4){
+      set[0].forEach((n,i)=>{h+=icon(n,540+(i-(set[0].length-1)/2)*95,830,58,pop*(1-out));});
+      set[1].forEach((n,i)=>{h+=icon(n,540+(i-(set[1].length-1)/2)*95,1110,58,pop*(1-out));});
+    }
+  } else if(t<14.45){
+    h+=line(860, W('and',13.5)+W('yes,',13.6)+W('we',13.7));
+    h+=line(975, W('like',0)+W('to',13.85,{bold:true})+W('play.',13.95,{bold:true}));
+  } else {
+    // "to play." centers & grows, then shrinks to the left with a dot
+    const a=eio(P(t,14.45,14.8)), b=eio(P(t,15.15,15.5));
+    const fade=1-P(t,14.45,14.6);
+    if(fade>0){h+=line(860, W('and',0)+W('yes,',0)+W('we',0), fade); h+=line(975, `<span style="font-weight:300;color:#fff">like </span><span style="color:transparent">to play.</span>`, fade);}
+    const size=lerp(100,120,a)*lerp(1,.48,b);
+    const x=lerp(540,540,a), left=lerp(x,60,b);
+    h+=`<div class="a" style="left:${left}px;top:${lerp(lerp(975,912,a),938,b)}px;transform:translateX(${-50*(1-b)}%);font-size:${size}px;font-weight:700;letter-spacing:-0.035em;color:#fff;white-space:nowrap;line-height:1">to play<span style="color:${b>0.5?C.ink:'#fff'}">${b>0.5?' •':'.'}</span></div>`;
+  }
+  return h;
+}
+function sWheel(t){ // 15.5 - 21.65
+  let h=bg(C.red)+circles('#fff',.1);
+  h+=label(50,140,'Disciplines',`#fff`,15,.65)+label(50,166,`${DISCIPLINES.length} total`,'#fff',15,.4);
+  h+=`<div class="a" style="left:60px;top:938px;font-size:58px;font-weight:700;letter-spacing:-0.035em;color:#fff;white-space:nowrap;line-height:1">to play<span style="color:${C.ink}"> •</span></div>`;
+  // position: eased steps every 0.42s
+  const st=15.75, stepDur=.42; const n=(t-st)/stepDur;
+  const whole=Math.floor(Math.max(0,n)); const frac=n<0?0:eio(clamp((n-whole)/0.55));
+  const pos=whole+frac + (n<0?0:0);
+  const appear=eo(P(t,15.5,15.9));
+  const L=DISCIPLINES.length, R=300, step=Math.PI/9;
+  for(let k=-6;k<=6;k++){
+    const idx=Math.round(pos)+k; const item=DISCIPLINES[((idx%L)+L)%L];
+    const th=(idx-pos)*step; if(Math.abs(th)>Math.PI/2.05) continue;
+    const y=962+Math.sin(th)*R, z=Math.cos(th);
+    const active=Math.abs(idx-pos)<0.5;
+    const final=t>21.0&&active;
+    h+=`<div class="a" style="left:330px;top:${y-36}px;font-size:60px;line-height:72px;letter-spacing:-0.03em;white-space:nowrap;color:${final?C.ink:'#fff'};font-weight:${active?600:300};
+      opacity:${appear*(active?1:Math.pow(z,2.2)*.45)};transform:perspective(900px) rotateX(${-th*57.3}deg) scale(${.8+.2*z});transform-origin:left center">${item}</div>`;
+  }
+  return h;
+}
+// ---------- name flash cards ----------
+const nm=(col,size=120,extra='')=>`<div class="a c" style="top:${960-size*.55}px;font-size:${size}px;font-weight:600;letter-spacing:-0.04em;color:${col};line-height:1;${extra}">${NAME}</div>`;
+const CARDS=[
+  ()=>bg(C.cream)+[620,960,1300].map(y=>`<div class="a" style="left:${540-330}px;top:${y-330}px;width:660px;height:660px;border-radius:50%;border:2px solid ${C.red}"></div>`).join('')+[790,1130].map(y=>`<div class="a" style="left:528px;top:${y-12}px;color:${C.red};font-size:24px">✕</div>`).join('')+nm(C.ink),
+  ()=>bg(C.paper)+vline(540,560,860,C.ink,.8,2)+vline(540,1060,1460,C.ink,.8,2)+`<div class="a" style="left:528px;top:548px;width:24px;height:24px;border-radius:50%;border:2.5px solid ${C.ink}"></div><div class="a" style="left:531px;top:1452px;width:18px;height:18px;border-radius:50%;background:${C.ink}"></div>`+label(500,510,'Brief',C.ink,14)+nm(C.ink),
+  ()=>`<div class="full" style="background:linear-gradient(${C.red} 0 22%, #FFB59E 22% 42%, ${C.paper} 42% 66%, ${C.dark} 66% 100%)"></div>`+label(20,420,'Palette',C.ink,13)+nm(C.red),
+  ()=>bg(C.dark)+`<div class="full" style="background:conic-gradient(from 60deg at -5% 50%, transparent 0deg, rgba(254,55,11,.0) 6deg, rgba(255,140,100,.55) 14deg, transparent 22deg, rgba(255,120,80,.35) 30deg, transparent 40deg, rgba(255,160,120,.5) 48deg, transparent 60deg);filter:blur(14px)"></div>`+nm('#fff'),
+  ()=>bg(C.paper)+[220,860].map(x=>vline(x,0,1920,'#b9b6b1',.8)).join('')+`<div class="a" style="left:330px;top:820px;width:420px;height:280px;border:1.5px solid #9a9792"></div>`+[[330,820],[750,820],[330,1100],[750,1100]].map(([x,y])=>`<div class="a" style="left:${x-5}px;top:${y-5}px;width:10px;height:10px;border:1.5px solid #9a9792;background:${C.paper}"></div>`).join('')+label(40,955,'Typography','#6e6e73',13)+nm(C.ink),
+  ()=>bg(C.red)+label(80,560,'Good design<br>deserves to ship.','#fff',20,1,'line-height:1.6')+nm('#fff')+label(80,1300,'AI Design Engineer — 2026','#fff',18)+`<div class="a" style="left:0;top:1500px;width:1080px;height:70px;background:repeating-linear-gradient(90deg,${C.dark} 0 46px,transparent 46px 62px)"></div>`,
+  ()=>bg(C.paper)+`<div class="a" style="left:-80px;top:560px;width:1240px;height:820px;background:${C.red};transform:rotate(-24deg) skewX(-6deg);box-shadow:0 40px 80px rgba(0,0,0,.25)"></div>`+[[180,560,170],[820,1350,210],[900,680,120]].map(([x,y,r])=>`<div class="a" style="left:${x-r/2}px;top:${y-r/2}px;width:${r}px;height:${r*.8}px;border-radius:50%;background:${C.ink}"></div>`).join('')+nm('#fff'),
+  ()=>bg(C.dark)+`<div class="a" style="left:-120px;top:600px;width:1300px;height:760px;background:${C.red};transform:rotate(-24deg)"></div>`+[[150,780,150],[860,700,120],[780,1250,220]].map(([x,y,r])=>`<div class="a" style="left:${x-r/2}px;top:${y-r/2}px;width:${r}px;height:${r*.8}px;border-radius:50%;background:${C.cream}"></div>`).join('')+nm('#fff'),
+  ()=>bg(C.red)+`<div class="a" style="left:60px;top:740px;width:960px;height:440px;border-radius:10px;background:${C.dark};box-shadow:0 30px 60px rgba(0,0,0,.35)"></div>`+label(100,780,'AI Design Engineer','#fff',13,.7)+label(720,1130,'Product · AI · Code','#fff',12,.6)+`<div class="a" style="left:100px;top:1128px;width:12px;height:12px;border-radius:50%;background:${C.red}"></div>`+nm('#fff'),
+  ()=>bg(C.red)+label(470,560,'Name 2026','#fff',12,.7)+`<div class="a" style="left:220px;top:870px;width:640px;height:190px;border:2px solid rgba(255,255,255,.75)"></div>`+[[220,870],[860,870],[220,1060],[860,1060]].map(([x,y])=>`<div class="a" style="left:${x-6}px;top:${y-6}px;width:12px;height:12px;background:${C.red};border:2px solid #fff"></div>`).join('')+`<div class="a c" style="top:1380px;font-size:22px;color:#fff;letter-spacing:6px">● ○ ○ ○ ○</div>`+nm('#fff'),
+  ()=>bg(C.red)+[600,960,1320].map(y=>`<div class="a" style="left:${540-340}px;top:${y-340}px;width:680px;height:680px;border-radius:50%;border:2px solid rgba(255,255,255,.55)"></div>`).join('')+nm('#fff'),
+  ()=>`<div class="full" style="background:linear-gradient(${C.dark} 0 18%, ${C.ink} 18% 48%, ${C.cream} 48% 100%)"></div>`+`<div class="full" style="background:linear-gradient(transparent 0 48%, transparent 48%)"></div>`+nm(C.red,120,'top:830px'),
+];
+const CARD_SEQ=[0,1,2,3,4,5,6,7,8,9,10,11,5,7,9,1,4];
+function sCards(t){ // 21.65 - 26.3
+  const dur=(26.3-21.65)/CARD_SEQ.length; const i=Math.min(CARD_SEQ.length-1,Math.floor((t-21.65)/dur));
+  return CARDS[CARD_SEQ[i]]();
+}
+function sOutro(t){ // 26.3 - 30
+  let h=bg(C.dark); const col='#8a8a8f';
+  const up=eio(P(t,26.75,27.1));
+  const y=lerp(905,870,up);
+  h+=`<div class="a c" style="top:${y}px;font-size:${lerp(150,140,up)}px;font-weight:600;letter-spacing:-0.04em;color:#fff;line-height:1">${NAME}<span style="color:${C.red}">.</span></div>`;
+  const sub=typed(SUB,t,27.0,30);
+  h+=`<div class="a c mono" style="top:1035px;font-size:22px;font-weight:500;color:#9c9ca1">${sub}${t>27&&t<29.2?caret(24,blink(t)):''}</div>`;
+  const g=eio(P(t,27.9,28.5));
+  h+=hline(860,540-540*g,540+540*g,col,.35)+hline(1020,540-540*g,540+540*g,col,.35);
+  [180,900].forEach(x=>{h+=vline(x,960-560*g,960+560*g,col,.25)+node(x,860,col,g)+node(x,1020,col,g);});
+  h+=label(190,1030,'w 720',col,12,g*.8)+label(910,840,'y 860',col,12,g*.8);
+  // loop back to the opening dark grid
+  const o=P(t,29.45,30); if(o>0) h+=`<div class="full" style="background:${C.dark};opacity:${o}"></div>`;
+  return h;
+}
+
+function render(t){
+  let h;
+  if(t<1.25) h=sDarkIntro(t);
+  else if(t<2.05) h=sHello(t);
+  else if(t<5.8) h=sIntro(t);
+  else if(t<8.65) h=sRoles(t);
+  else if(t<9.8) h=sNameShrink(t);
+  else if(t<15.5) h=sQuote(t);
+  else if(t<21.65) h=sWheel(t);
+  else if(t<26.3) h=sCards(t);
+  else h=sOutro(t);
+  S.innerHTML=h+grain();
+}
+window.render=render; window.TOTAL=TOTAL;
+document.fonts.ready.then(()=>window.READY=true);
+if(location.search.includes('play')){const t0=performance.now();(function l(){render(((performance.now()-t0)/1000)%TOTAL);requestAnimationFrame(l)})();}
+else render(0);
+</script>
+</body>
+</html>

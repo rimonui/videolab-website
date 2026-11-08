@@ -1,0 +1,5 @@
+All sound effects in this folder are CC0 (public domain) from OpenGameArt.org:
+- keys/   "Keyboard Soundpack 1 - typing and single keystrokes" (Unicae Games) https://opengameart.org/content/keyboard-soundpack-1-typing-and-single-keystrokes
+- swish/  "Swishes sound pack" https://opengameart.org/content/swishes-sound-pack ; whoosh-long.wav "Air Whoosh" https://opengameart.org/content/air-whoosh
+- ui/     "51 UI sound effects (buttons, switches and clicks)" https://opengameart.org/content/51-ui-sound-effects-buttons-switches-and-clicks
+          c10-* "10 clicks and switches" https://opengameart.org/content/10-clicks-and-switches

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Gr8r Studio — "Ship it" micro-interaction loop</title>
+<style>
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-400.woff2) format('woff2');font-weight:400}
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-500.woff2) format('woff2');font-weight:500}
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-600.woff2) format('woff2');font-weight:600}
+  @font-face{font-family:'Funnel Display';src:url(assets/funnel-700.woff2) format('woff2');font-weight:700}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1080px;overflow:hidden;background:#F5F5F4}
+  body{font-family:'Inter','Inter Display',sans-serif;-webkit-font-smoothing:antialiased;color:#0B0B0C}
+  #stage{position:relative;width:1080px;height:1080px;overflow:hidden}
+  .a{position:absolute}
+  .fd{font-family:'Funnel Display',sans-serif}
+  .mono{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+// ---------------- copy (from gr8rstudio.com) ----------------
+const BTN='Ship it', DONE='Shipped!';
+const N1=['Launch complete','Users are signing up from your new site','now'];
+const N2=['New message','Founder, SaaS: Can we talk about v2?','1m'];
+const B1='Smooth, bro!', TAG='+ New opportunity', B2='Let’s work together!';
+const Q='What happens after';
+const TAGLINE='Digital Product & AI Engineering Partner';
+const URL='gr8rstudio.com';
+const BEAT=60/83, TOTAL=BEAT*20;   // 14.46s loop, events sit on the 83 BPM grid
+const C={red:'#FE370B',ink:'#0B0B0C',paper:'#F5F5F4',mute:'#6E6E73',hair:'#E3E4E8',redSoft:'rgba(254,55,11,.14)'};
+
+// ---------------- helpers ----------------
+const S=document.getElementById('stage');
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const P=(t,a,b)=>clamp((t-a)/(b-a));
+const lerp=(a,b,k)=>a+(b-a)*k;
+const eo=k=>1-Math.pow(1-k,3), eo5=k=>1-Math.pow(1-k,5), eio=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+const spring=(k,f=9,d=6)=>k<=0?0:k>=1.4?1:1-Math.exp(-d*k)*Math.cos(f*k);
+const B=n=>n*BEAT;  // beat -> seconds
+const CX=540, CY=500;
+
+const hand=(x,y,s=1,press=0)=>`<svg class="a" style="left:${x-14}px;top:${y-4}px;transform:scale(${s*(1-press*.12)});transform-origin:14px 4px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.18))" width="64" height="64" viewBox="0 0 24 24" fill="#fff" stroke="${C.ink}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V10a2 2 0 0 0-4 0M14 10V9a2 2 0 0 0-4 0v1M10 9.5V4a2 2 0 0 0-4 0v10M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L6 15"/></svg>`;
+const avatar=(x,y,r,kind='gr8r',op=1)=>kind==='gr8r'
+  ?`<div class="a fd" style="left:${x-r}px;top:${y-r}px;width:${2*r}px;height:${2*r}px;border-radius:50%;background:${C.red};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${r*.62}px;letter-spacing:-0.04em;opacity:${op}">gr8r</div>`
+  :`<div class="a" style="left:${x-r}px;top:${y-r}px;width:${2*r}px;height:${2*r}px;border-radius:50%;background:#e6e5e3;overflow:hidden;opacity:${op}"><div style="position:absolute;left:30%;top:18%;width:40%;height:40%;border-radius:50%;background:#c9c8c5"></div><div style="position:absolute;left:12%;top:62%;width:76%;height:60%;border-radius:50%;background:#c9c8c5"></div></div>`;
+const sparkle=(x,y,k)=>k<=0||k>=1?'':[[0,0,22],[30,-26,12],[48,-8,8]].map(([dx,dy,s],i)=>{const kk=clamp(k*1.4-i*.15);const sc=Math.sin(kk*Math.PI);
+  return `<svg class="a" style="left:${x+dx-s}px;top:${y+dy-s}px;transform:scale(${sc}) rotate(${kk*90}deg)" width="${2*s}" height="${2*s}" viewBox="0 0 24 24"><path d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z" fill="${C.red}"/></svg>`;}).join('');
+
+// ---------------- the morphing pill: button -> shipped -> notification ----------------
+function pill(t){
+  let h='';
+  // phase times (seconds)
+  const press=B(.6), morph1=B(.85), toCard=B(2), cardIn=B(2.6), click2=B(5.6), collapse=B(7);
+  // ripple ring on click
+  const rp=P(t,morph1,morph1+B(1.3));
+  if(rp>0&&rp<1){const r=lerp(60,200,eo(rp));h+=`<div class="a" style="left:${CX-r}px;top:${CY-r}px;width:${2*r}px;height:${2*r}px;border-radius:50%;border:${lerp(10,2,rp)}px solid ${C.red};opacity:${(1-rp)*.55}"></div>`;}
+  if(t>=collapse) return h;
+  // size / style keyframes
+  let w=250,ht=96,rad=48,bg=C.red,sc=1,rot=0,op=1;
+  const pr=t<press?0:t<morph1?Math.sin(P(t,press,morph1)*Math.PI):0;   // squash on press
+  sc=1-pr*.1;
+  const m1=spring(P(t,morph1,morph1+B(1.4)));       // to white "Shipped!"
+  w=lerp(250,300,m1); bg=m1>.15?'#fff':C.red;
+  const m2=spring(P(t,toCard,toCard+B(1.5)),8,5);   // to notification card
+  w=lerp(w,720,m2); ht=lerp(96,150,m2); rad=lerp(48,40,m2);
+  rot=m2>0?lerp(-7,0,spring(P(t,toCard+B(.2),toCard+B(1.8)),8,5))*(m2<1?1:1):0;
+  const out=eio(P(t,collapse-B(.5),collapse)); sc*=1-out*.3; op=1-out;
+  const shadow=m1>.15?'0 18px 50px rgba(0,0,0,.10),0 0 0 1px rgba(0,0,0,.05)':'0 12px 30px rgba(254,55,11,.35)';
+  h+=`<div class="a" style="left:${CX-w/2}px;top:${CY-ht/2}px;width:${w}px;height:${ht}px;border-radius:${rad}px;background:${bg};box-shadow:${shadow};transform:scale(${sc}) rotate(${rot}deg);opacity:${op};overflow:hidden">`;
+  // contents
+  if(m1<.15) h+=`<div class="fd" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:44px;font-weight:600;letter-spacing:-0.02em">${BTN}</div>`;
+  else if(m2<.25){const k=P(m1,.15,.6);h+=`<div class="fd" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;color:${C.ink};font-size:44px;font-weight:600;letter-spacing:-0.02em;opacity:${k*(1-P(m2,0,.25))};transform:translateY(${(1-k)*18}px)"><span style="display:inline-block;width:30px;height:30px;border-radius:50%;background:${C.red};color:#fff;font-size:20px;line-height:30px;text-align:center">✓</span>${DONE}</div>`;}
+  else {
+    const k=eo5(P(t,cardIn,cardIn+B(.8))); const sw=P(t,click2,click2+B(.35)); const N=sw<.5?N1:N2; const swk=sw<.5?1-sw*2:(sw-.5)*2;
+    h+=`<div style="position:absolute;inset:0;opacity:${k*(sw>0&&sw<1?swk:1)};transform:translateY(${(1-k)*14+(sw>0&&sw<1?(1-swk)*(sw<.5?-12:12):0)}px)">
+      ${N===N1?avatar(75,75,42,'gr8r'):avatar(75,75,42,'person')}
+      <div style="position:absolute;left:138px;top:36px;font-size:30px;font-weight:700;color:${C.ink};letter-spacing:-0.01em">${N[0]}</div>
+      <div style="position:absolute;left:138px;top:80px;font-size:26px;color:#4a4a4f;white-space:nowrap">${N[1]} <span style="color:#9a9aa0">· ${N[2]}</span></div>
+      ${N===N2?`<div style="position:absolute;right:34px;top:66px;width:16px;height:16px;border-radius:50%;background:${C.red}"></div>`:''}</div>`;
+  }
+  h+=`</div>`;
+  h+=sparkle(CX-w/2-30,CY-ht/2-10,P(t,toCard+B(.5),toCard+B(1.7)));
+  return h;
+}
+// ---------------- "And also this!" ----------------
+function words(t){
+  const st=B(3.6), out=P(t,B(6.2),B(6.7)); if(t<st||out>=1) return '';
+  const W=[['And',-8,-60,0],['also',4,0,-24],['this!',-5,70,0]];
+  return W.map(([w,r,dx,dy],i)=>{const k=spring(P(t,st+i*B(.28),st+i*B(.28)+B(1.4)),10,5);
+    const x=CX+(i-1)*150+dx*.2, y=CY-170+dy;
+    return `<div class="a fd" style="left:${x}px;top:${y}px;transform:translate(-50%,-50%) scale(${k}) rotate(${r*k}deg);font-size:68px;font-weight:${i===2?700:500};font-style:${i===2?'italic':'normal'};color:${i===2?C.red:C.ink};opacity:${(k>0?1:0)*(1-out)};filter:blur(${out*8}px);letter-spacing:-0.03em;white-space:nowrap">${w}</div>`;}).join('');
+}
+// ---------------- chat: avatar + typing -> bubbles ----------------
+function chat(t){
+  const st=B(7), end=B(10.4); if(t<st-.05||t>=end+B(1)) return '';
+  let h=''; const ax=CX-250, ay=CY+20;
+  const ap=spring(P(t,st,st+B(1)),9,6); const zoom=eio(P(t,end-B(.6),end+B(.4)));
+  const fade=1-zoom;
+  h+=avatar(ax,ay,52,'person',ap*fade);
+  // typing dots bubble
+  const typing=t<B(8.2);
+  const bx=ax+80;
+  if(typing){const k=spring(P(t,st+B(.2),st+B(1.2)));
+    h+=`<div class="a" style="left:${bx}px;top:${ay-70}px;width:150px;height:80px;border-radius:40px 40px 40px 12px;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.08);transform:scale(${k});transform-origin:0 100%;display:flex;align-items:center;justify-content:center;gap:12px">${[0,1,2].map(i=>`<span style="width:16px;height:16px;border-radius:50%;background:${C.ink};opacity:${.25+.6*Math.max(0,Math.sin((t*7)-i*0.9))}"></span>`).join('')}</div>`;}
+  else{
+    const k1=spring(P(t,B(8.2),B(9.2)),9,6);
+    h+=`<div class="a fd" style="left:${bx}px;top:${ay-120}px;padding:22px 34px;border-radius:40px 40px 40px 12px;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.08);font-size:44px;font-weight:500;letter-spacing:-0.02em;white-space:nowrap;transform:scale(${k1});transform-origin:0 100%;opacity:${fade}">${B1}</div>`;
+    const kt=eo5(P(t,B(8.7),B(9.3)));
+    h+=`<div class="a" style="left:${bx+10}px;top:${ay-170}px;font-size:24px;font-weight:600;color:${C.red};opacity:${kt*fade};transform:translateY(${(1-kt)*12}px)">${TAG}</div>`;
+    const k2=spring(P(t,B(9.1),B(10)),9,6);
+    // second bubble zooms into the headline
+    const fx=lerp(bx,CX,zoom), fy=lerp(ay-10,CY,zoom), fs=lerp(44,92,zoom);
+    h+=`<div class="a fd" style="left:${fx}px;top:${fy}px;transform:translate(${-50*zoom}%,-50%) scale(${k2});transform-origin:0 50%;padding:${lerp(22,0,zoom)}px ${lerp(34,0,zoom)}px;border-radius:40px 40px 40px 12px;background:rgba(255,255,255,${1-zoom});box-shadow:0 12px 30px rgba(0,0,0,${.08*(1-zoom)});font-size:${fs}px;font-weight:${zoom>.5?600:500};letter-spacing:-0.035em;white-space:nowrap">${B2}</div>`;
+  }
+  return h;
+}
+// ---------------- text selection -> "What happens after" -> button ----------------
+function selectSeq(t){
+  const st=B(11.4); if(t<st-.01||t>B(16.2)) return '';
+  let h='';
+  const fs=92;
+  const caretOn=Math.floor(t*2.6)%2===0;
+  const sel=(txt,k,col)=>`<span style="position:relative;display:inline-block">${txt}<span style="position:absolute;left:-6px;top:6%;height:88%;width:calc((100% + 12px)*${k});background:${C.redSoft};border-left:4px solid ${C.red};border-right:4px solid ${C.red}"></span>
+     <span style="position:absolute;left:-12px;top:-4%;width:16px;height:16px;border-radius:50%;background:${C.red}"></span>
+     <span style="position:absolute;left:calc(-12px + (100% + 12px)*${k});bottom:-4%;width:16px;height:16px;border-radius:50%;background:${C.red}"></span></span>`;
+  if(t<B(13)){
+    // select "Let's work together!" then delete it
+    const k=eio(P(t,st,st+B(.9)));
+    const del=P(t,B(12.5),B(12.75));
+    if(del<1) h+=`<div class="a fd" style="left:${CX}px;top:${CY}px;transform:translate(-50%,-50%) scaleX(${1-del});font-size:${fs}px;font-weight:600;letter-spacing:-0.035em;white-space:nowrap;filter:blur(${del*10}px)">${sel(B2,k)}</div>`;
+    else h+=`<div class="a" style="left:${CX-3}px;top:${CY-50}px;width:6px;height:100px;background:${C.red};opacity:${caretOn?1:.2}"></div>`;
+  } else if(t<B(15)){
+    const n=Math.floor(clamp((t-B(13))/(B(1.1)/Q.length),0,Q.length));
+    const txt=Q.slice(0,n);
+    const k=eio(P(t,B(14.15),B(14.6)));
+    const sq=P(t,B(14.65),B(15));
+    h+=`<div class="a fd" style="left:${CX}px;top:${CY}px;transform:translate(-50%,-50%) scale(${1-sq*.75},${1-sq*.9}) rotate(${-sq*12}deg);font-size:${fs}px;font-weight:600;letter-spacing:-0.035em;white-space:nowrap;opacity:${1-sq*.6}">${n<Q.length?txt+`<span style="display:inline-block;width:6px;height:80px;background:${C.red};margin-left:6px;vertical-align:-6px"></span>`:sel(txt,k)}</div>`;
+  } else {
+    // squashed text becomes the ring + button again
+    const k=spring(P(t,B(15),B(16)),9,6);
+    const r=lerp(40,190,eo(P(t,B(15),B(15.8))));
+    h+=`<div class="a" style="left:${CX-r}px;top:${CY-r}px;width:${2*r}px;height:${2*r}px;border-radius:50%;border:${lerp(14,2,P(t,B(15),B(16)))}px solid ${C.red};opacity:${(1-P(t,B(15.2),B(16.1)))*.5}"></div>`;
+    h+=`<div class="a fd" style="left:${CX-125}px;top:${CY-48}px;width:250px;height:96px;border-radius:48px;background:${C.red};color:#fff;font-size:44px;font-weight:600;letter-spacing:-0.02em;display:flex;align-items:center;justify-content:center;transform:scale(${k});box-shadow:0 12px 30px rgba(254,55,11,.35)">${BTN}</div>`;
+  }
+  return h;
+}
+// ---------------- brand outro (button stays; logo + tagline) ----------------
+function brand(t){
+  let h='';
+  const st=B(16.2);
+  if(t>=st){ // resting button (identical to frame 0 so the loop is seamless)
+    h+=`<div class="a fd" style="left:${CX-125}px;top:${CY-48}px;width:250px;height:96px;border-radius:48px;background:${C.red};color:#fff;font-size:44px;font-weight:600;letter-spacing:-0.02em;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(254,55,11,.35)">${BTN}</div>`;
+  }
+  const k=eo5(P(t,B(15.6),B(16.6))), o=eio(P(t,B(19),B(19.8)));
+  if(k>0&&o<1){
+    h+=`<div class="a fd" style="left:0;width:1080px;text-align:center;top:${CY+110+(1-k)*20}px;font-size:40px;font-weight:500;letter-spacing:-0.025em;color:${C.ink};opacity:${k*(1-o)}">What happens after <b style="font-weight:700">you ship</b><span style="color:${C.red}">?</span></div>`;
+    const k2=eo5(P(t,B(16.4),B(17.4)));
+    h+=`<div class="a" style="left:0;width:1080px;display:flex;justify-content:center;align-items:center;gap:18px;top:${CY+250+(1-k2)*20}px;opacity:${k2*(1-o)}">${avatar(0,0,0)}<div class="fd" style="width:64px;height:64px;border-radius:50%;background:${C.red};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;letter-spacing:-0.04em">gr8r</div>
+      <div style="text-align:left"><div class="fd" style="font-size:30px;font-weight:600;letter-spacing:-0.02em">Gr8r Studio</div><div style="font-size:22px;color:${C.mute}">${TAGLINE}</div></div></div>`;
+  }
+  return h;
+}
+// ---------------- cursor path ----------------
+const CUR=[[0,CX+40,CY+20],[B(.55),CX+20,CY+10],[B(.9),CX+30,CY+20],[B(2.2),CX+330,CY+70],[B(4.4),CX+330,CY+70],[B(5.4),CX+80,CY+30],[B(5.9),CX+80,CY+30],[B(7),CX+390,CY+400],
+  [B(17.5),CX+390,CY+400],[B(19.6),CX+40,CY+20],[TOTAL,CX+40,CY+20]];
+function cursor(t){
+  let i=0; while(i<CUR.length-2&&t>CUR[i+1][0]) i++;
+  const [a,x1,y1]=CUR[i],[b,x2,y2]=CUR[i+1]; const k=eio(P(t,a,b));
+  const pressed=(t>B(.6)&&t<B(.85))||(t>B(5.6)&&t<B(5.85));
+  const hide=t>B(7.3)&&t<B(16.6);
+  if(hide) return '';
+  return hand(lerp(x1,x2,k),lerp(y1,y2,k),1,pressed?1:0);
+}
+function bgLayer(){
+  let h=`<div class="a" style="inset:0;background:radial-gradient(ellipse at 50% 42%,#FFFFFF 0%,${C.paper} 60%,#ECECEA 100%)"></div>`;
+  [180,900].forEach(x=>h+=`<div class="a" style="left:${x}px;top:0;width:1px;height:1080px;background:${C.hair}"></div>`);
+  h+=`<div class="a mono" style="left:60px;top:56px;font-size:15px;color:${C.mute}">Gr8r Studio</div>`;
+  h+=`<div class="a mono" style="right:60px;top:56px;font-size:15px;color:${C.mute}">${URL}</div>`;
+  return h;
+}
+function render(t){
+  t=((t%TOTAL)+TOTAL)%TOTAL;
+  let h=bgLayer();
+  h+=pill(t)+words(t)+chat(t)+selectSeq(t)+brand(t)+cursor(t);
+  S.innerHTML=h;
+}
+window.render=render; window.TOTAL=TOTAL;
+Promise.all(['400','500','600','700'].map(w=>document.fonts.load(`${w} 40px "Funnel Display"`))).then(()=>document.fonts.ready).then(()=>{window.READY=true;render(0);});
+if(location.search.includes('play')){const t0=performance.now();(function l(){if(window.READY)render((performance.now()-t0)/1000);requestAnimationFrame(l)})();}
+</script>
+</body>
+</html>

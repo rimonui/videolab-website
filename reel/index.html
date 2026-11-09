@@ -1,0 +1,32 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:A;src:url(archivo.woff2)}@font-face{font-family:S;font-style:italic;src:url(serif-i.woff2)}
+html,body{margin:0;width:720px;height:1280px;overflow:hidden}
+#s{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:A;text-align:center}
+.logo{font-weight:900;font-size:150px;letter-spacing:-6px;line-height:.9}
+.logo i{font-family:S;font-weight:400;letter-spacing:0}
+.tag{font-family:S;font-style:italic;font-size:44px;margin-bottom:8px}
+.line{font-size:46px;font-weight:500;letter-spacing:-1px;line-height:1.3}
+.word{font-weight:800;font-size:80px;letter-spacing:-3px;line-height:1;padding:0 40px}
+.word i{font-family:S;font-weight:400;letter-spacing:-1px}
+</style></head><body><div id="s"></div><script>
+// minimal retro palette: [bg, text]
+const P={sage:['#B7C4A4','#2E3B26'],dusk:['#9DB4CC','#1F2F44'],lilac:['#CDBFE3','#3B2C5A'],
+olive:['#5E6237','#E9E4C9'],mint:['#D3E9DA','#24483A'],clay:['#B8705A','#FBEFE6'],
+forest:['#2F4A3E','#D9E8C8'],plum:['#3E2C3C','#E7C9D6'],stone:['#E4E1D8','#2B2A28'],teal:['#6E9C99','#F2F0E6']};
+const W=[['SaaS <i>Websites</i>','sage'],['AI Agent <i>Websites</i>','plum'],['Branding','dusk'],['Website <i>Design</i>','clay'],
+['UX <i>Design</i>','lilac'],['Product <i>Design</i>','forest'],['AI-Native <i>Products</i>','teal'],['& <i>more…</i>','olive']];
+const s=document.getElementById('s');
+const logo=c=>`<div class="tag" style="color:${c}">ai-native designer</div><div class="logo" style="color:${c}">rimon<i>.</i></div>`;
+function set(k,html,y=0,o=1){const [b,c]=P[k];document.body.style.background=b;s.style.color=c;s.innerHTML=html;s.style.transform=`translateY(${y}px)`;s.style.opacity=o}
+const ease=x=>1-Math.pow(1-Math.min(1,Math.max(0,x)),3);
+window.render=t=>{
+ if(t<1.8){const e=ease(t/.6);return set('mint',logo(P.mint[1]),40*(1-e),e)}
+ if(t<2.9)return set('stone','<div class="line">I design nothing…</div>',0,ease((t-1.8)/.3));
+ if(t<4.0)return set('stone','<div class="line">I design nothing…<br>except</div>');
+ const d=.6,i=Math.floor((t-4)/d);
+ if(i<W.length){const lt=(t-4)-i*d,e=ease(lt/.18);return set(W[i][1],`<div class="word">${W[i][0]}</div>`,30*(1-e),e)}
+ const t2=t-4-W.length*d;
+ if(t2<1.6)return set('plum',`<div class="tag">I'm an</div><div class="word" style="font-size:88px">AI Design<br><i>Engineer</i></div>`,30*(1-ease(t2/.3)),ease(t2/.3));
+ set('mint',logo(P.mint[1]),0,ease((t2-1.6)/.4));
+};render(0);
+</script></body></html>

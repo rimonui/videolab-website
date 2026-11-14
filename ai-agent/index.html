@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agentic — AI agents that work like your best teammate</title>
+<meta name="description" content="Deploy AI agents that research, decide and act across your tools with human-level precision." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="top">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="rays"></div>
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+    </div>
+
+    <header class="nav">
+      <a class="logo" href="#top">
+        <span class="logo-mark">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2.5l2.1 6.4 6.4 2.1-6.4 2.1L12 19.5l-2.1-6.4L3.5 11l6.4-2.1z" fill="#fff"/><circle cx="18.5" cy="5" r="1.6" fill="#fff"/></svg>
+        </span>
+        Agentic
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#">Agents</a>
+        <a href="#how">How it works</a>
+        <a href="#">Pricing</a>
+        <a href="#">Docs</a>
+        <a href="#">Sign in</a>
+      </nav>
+      <a class="btn btn-ghost btn-sm" href="#">Get started</a>
+    </header>
+
+    <div class="hero-copy">
+      <a class="pill-badge reveal" href="#how">
+        <span class="pill-new">New</span>
+        Agent Studio 2.0 is live
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <h1 class="reveal d1">AI agents that work like <br/>your best teammate</h1>
+      <p class="reveal d2">Deploy autonomous agents that research, decide and act across your tools — with human-level precision, around the clock.</p>
+    </div>
+
+    <!-- Stage: live chat + floating stat cards -->
+    <div class="stage">
+
+      <!-- left floating cards -->
+      <div class="float-card fc-tasks" style="--r:-7deg; --fd:0s">
+        <div class="ring-icon orange">
+          <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" class="track"/><circle cx="18" cy="18" r="14" class="bar" style="--p:72"/></svg>
+        </div>
+        <div>
+          <div class="fc-num"><span data-count="72">0</span>%</div>
+          <div class="fc-sub">Tasks fully automated</div>
+        </div>
+        <span class="fc-dots">⋮</span>
+      </div>
+
+      <div class="float-card fc-speed" style="--r:-5deg; --fd:-2s">
+        <div class="ring-icon violet">
+          <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" class="track"/><circle cx="18" cy="18" r="14" class="bar" style="--p:94"/></svg>
+        </div>
+        <div>
+          <div class="fc-num"><span data-count="1.2" data-dec="1">0</span>s</div>
+          <div class="fc-sub">Avg. agent response</div>
+        </div>
+        <span class="fc-dots">⋮</span>
+      </div>
+
+      <div class="float-card fc-hours" style="--r:-10deg; --fd:-4s">
+        <div class="fc-icon blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#fff" stroke-width="2"/><path d="M12 7.5V12l3 2" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="fc-row">
+          <span class="fc-label">Hours saved</span>
+          <span class="fc-trend">+18.4% ↑</span>
+        </div>
+        <div class="fc-big"><span data-count="3482">0</span> hrs</div>
+        <div class="fc-sub">This quarter (2,940 last)</div>
+      </div>
+
+      <!-- center: live chat -->
+      <div class="chat" role="img" aria-label="Animated demo: an AI agent qualifying leads and booking demos">
+        <div class="chat-head">
+          <span class="chat-x">×</span>
+          <div class="chat-title">
+            <span class="agent-avatar sm"></span>
+            <div>
+              <strong>Nova</strong>
+              <span class="live"><i></i>Sales agent · live</span>
+            </div>
+          </div>
+          <svg class="sparkle" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" fill="url(#sg)"/><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6B6B6B"/><stop offset="1" stop-color="#0A0A0A"/></linearGradient></defs></svg>
+        </div>
+
+        <div class="chat-body" id="chatBody">
+          <div class="chat-intro" id="chatIntro">
+            <span class="agent-avatar lg"></span>
+            <p>Hi, I'm Nova. Give me a task and I'll handle it end-to-end.</p>
+          </div>
+        </div>
+
+        <div class="chat-input">
+          <span class="ci-plus">+</span>
+          <span class="ci-text" id="ciText"><span class="ci-ph">Ask your agent to do anything…</span></span>
+          <span class="ci-send" id="ciSend">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- right floating cards -->
+      <div class="float-card fc-agents" style="--r:8deg; --fd:-1s">
+        <div class="fc-title">Agents online</div>
+        <div class="fc-big"><span data-count="6">0</span> <small>running</small></div>
+        <div class="agent-list">
+          <div><i class="dot g"></i>Research <span>busy</span></div>
+          <div><i class="dot g"></i>Outreach <span>busy</span></div>
+          <div><i class="dot o"></i>Support <span>idle</span></div>
+        </div>
+        <div class="mini-bars">
+          <i style="--h:40%"></i><i style="--h:65%"></i><i style="--h:35%" class="hot"></i><i style="--h:80%"></i><i style="--h:55%"></i><i style="--h:90%" class="hot"></i><i style="--h:60%"></i>
+        </div>
+      </div>
+
+      <div class="float-card fc-accuracy" style="--r:9deg; --fd:-3s">
+        <div class="fc-title">Task accuracy</div>
+        <div class="gauge">
+          <svg viewBox="0 0 120 70">
+            <defs>
+              <linearGradient id="gg" x1="0" x2="1">
+                <stop offset="0" stop-color="#CFCFCF"/><stop offset=".55" stop-color="#6B6B6B"/><stop offset="1" stop-color="#0A0A0A"/>
+              </linearGradient>
+            </defs>
+            <path d="M12 62a48 48 0 0 1 96 0" class="g-track"/>
+            <path d="M12 62a48 48 0 0 1 96 0" class="g-bar"/>
+          </svg>
+          <div class="gauge-val"><span data-count="98.6" data-dec="1">0</span>%<small>Verified by review</small></div>
+        </div>
+        <div class="fc-row foot">
+          <div><small>Resolved</small><b>12,408</b></div>
+          <div><small>Escalated</small><b>174</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta reveal d3">
+      <a class="btn btn-primary" href="#">Deploy your first agent</a>
+      <a class="btn btn-ghost" href="#how">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        Watch demo
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ TRUSTED ============ -->
+  <section class="partners">
+    <h3>Trusted by fast-moving teams</h3>
+    <div class="logos">
+      <span><svg width="18" height="18" viewBox="0 0 24 24"><path d="M4 18L12 4l8 14z" fill="currentColor"/></svg>Northwind</span>
+      <span><svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="3"/></svg>Lumen</span>
+      <span><svg width="18" height="18" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor"/><rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor"/></svg>Quadrant</span>
+      <span><svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 12c3-6 6-6 9 0s6 6 9 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Wavely</span>
+      <span><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 3l8 5v8l-8 5-8-5V8z" fill="currentColor"/></svg>Hexa</span>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="how" id="how">
+    <div class="how-head">
+      <div>
+        <span class="tag">How it works</span>
+        <h2>From one prompt to a<br/>fully running AI agent</h2>
+      </div>
+      <div class="how-head-right">
+        <p>Three simple steps. No code, no flowcharts to maintain — your agent learns the job and gets to work.</p>
+        <a class="btn btn-primary" href="#">Start building</a>
+      </div>
+    </div>
+
+    <div class="cards">
+
+      <!-- Card 1: Automation -->
+      <article class="card reveal">
+        <div class="card-visual v-auto">
+          <div class="run-pill"><i></i>Workflow running</div>
+          <svg class="flow-lines" viewBox="0 0 320 240" preserveAspectRatio="none" aria-hidden="true">
+            <path id="fl1" d="M160 52 V100" />
+            <path id="fl2" d="M160 128 C160 160, 80 150, 80 188" />
+            <path id="fl3" d="M160 128 C160 160, 240 150, 240 188" />
+            <circle r="4" class="flow-dot"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#fl1"/></animateMotion></circle>
+            <circle r="4" class="flow-dot"><animateMotion dur="1.6s" begin=".8s" repeatCount="indefinite"><mpath href="#fl2"/></animateMotion></circle>
+            <circle r="4" class="flow-dot"><animateMotion dur="1.6s" begin="1.2s" repeatCount="indefinite"><mpath href="#fl3"/></animateMotion></circle>
+          </svg>
+          <div class="node n-trigger">
+            <span class="n-ic" style="background:#F2F2F2;color:#0A0A0A">
+              <svg width="14" height="14" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z" fill="currentColor"/></svg>
+            </span>
+            <div><small>Trigger</small>New inbound lead</div>
+          </div>
+          <div class="node n-agent">
+            <span class="agent-avatar xs"></span>
+            <div><small>Agent decides</small>Qualify &amp; route</div>
+          </div>
+          <div class="node n-a1">
+            <span class="n-ic" style="background:#F2F2F2;color:#0A0A0A">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="2.2"/><path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="2.2"/></svg>
+            </span>Send email<b class="check">✓</b>
+          </div>
+          <div class="node n-a2">
+            <span class="n-ic" style="background:#F2F2F2;color:#404040">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="2.2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            </span>Book meeting<b class="check">✓</b>
+          </div>
+        </div>
+        <div class="card-copy">
+          <span class="step">01 · Automation</span>
+          <h3>Describe the job in plain words</h3>
+          <p>Tell your agent what "done" looks like. It turns your instructions into a reliable workflow that runs on every trigger.</p>
+        </div>
+      </article>
+
+      <!-- Card 2: Integration -->
+      <article class="card reveal d1">
+        <div class="card-visual v-int">
+          <div class="orbit o1">
+            <span class="app" style="--a:0deg;   --c:#0A0A0A"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="2"/></svg></span>
+            <span class="app" style="--a:90deg;  --c:#404040"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M4 9h16M4 15h16M10 3v18" stroke="currentColor" stroke-width="2"/></svg></span>
+            <span class="app" style="--a:180deg; --c:#0A0A0A"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-4 3v-3H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+            <span class="app" style="--a:270deg; --c:#525252"><svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="2"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3" stroke="currentColor" stroke-width="2"/></svg></span>
+          </div>
+          <div class="orbit o2">
+            <span class="app" style="--a:45deg;  --c:#262626"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            <span class="app" style="--a:135deg; --c:#404040"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" stroke="currentColor" stroke-width="2"/></svg></span>
+            <span class="app" style="--a:225deg; --c:#525252"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l5 5v13H7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 3v5h5M10 13h6M10 17h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            <span class="app" style="--a:315deg; --c:#262626"><svg viewBox="0 0 24 24" fill="none"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13.5 6l-3 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="core">
+            <span class="pulse"></span><span class="pulse p2"></span>
+            <span class="agent-avatar md"></span>
+          </div>
+          <div class="sync-pill"><b class="check">✓</b><span id="syncText">Calendar connected</span></div>
+        </div>
+        <div class="card-copy">
+          <span class="step">02 · Integration</span>
+          <h3>Connect the tools you already use</h3>
+          <p>One-click access to 200+ apps — email, CRM, docs, calendars and your own APIs. Permissions stay in your control.</p>
+        </div>
+      </article>
+
+      <!-- Card 3: Live motion -->
+      <article class="card reveal d2">
+        <div class="card-visual v-live">
+          <div class="live-top">
+            <div>
+              <small>Tasks completed today</small>
+              <b><span data-count="1284">0</span></b>
+            </div>
+            <svg class="spark" viewBox="0 0 120 40" preserveAspectRatio="none">
+              <defs><linearGradient id="spf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0A0A0A" stop-opacity=".25"/><stop offset="1" stop-color="#0A0A0A" stop-opacity="0"/></linearGradient></defs>
+              <path class="sp-fill" d="M0 32 L15 28 L30 30 L45 20 L60 24 L75 14 L90 18 L105 8 L120 10 V40 H0Z" fill="url(#spf)"/>
+              <path class="sp-line" d="M0 32 L15 28 L30 30 L45 20 L60 24 L75 14 L90 18 L105 8 L120 10"/>
+            </svg>
+          </div>
+          <div class="feed">
+            <div class="feed-track">
+              <div class="feed-item"><span class="fi-ic" style="--c:#0A0A0A">✉</span><div><b>Replied to 8 support tickets</b><small>Support agent · 2s ago</small></div><span class="st done">Done</span></div>
+              <div class="feed-item"><span class="fi-ic" style="--c:#404040">◷</span><div><b>Booked demo with Lumen</b><small>Sales agent · 14s ago</small></div><span class="st done">Done</span></div>
+              <div class="feed-item"><span class="fi-ic" style="--c:#525252">⌕</span><div><b>Researching 24 accounts</b><small>Research agent · now</small></div><span class="st run">Running</span></div>
+              <div class="feed-item"><span class="fi-ic" style="--c:#0A0A0A">▤</span><div><b>Weekly report drafted</b><small>Ops agent · 1m ago</small></div><span class="st done">Done</span></div>
+              <div class="feed-item"><span class="fi-ic" style="--c:#262626">⇄</span><div><b>Synced 312 CRM records</b><small>Data agent · 2m ago</small></div><span class="st done">Done</span></div>
+              <!-- duplicate for seamless loop -->
+              <div class="feed-item"><span class="fi-ic" style="--c:#0A0A0A">✉</span><div><b>Replied to 8 support tickets</b><small>Support agent · 2s ago</small></div><span class="st done">Done</span></div>
+              <div class="feed-item"><span class="fi-ic" style="--c:#404040">◷</span><div><b>Booked demo with Lumen</b><small>Sales agent · 14s ago</small></div><span class="st done">Done</span></div>
+              <div class="feed-item"><span class="fi-ic" style="--c:#525252">⌕</span><div><b>Researching 24 accounts</b><small>Research agent · now</small></div><span class="st run">Running</span></div>
+              <div class="feed-item"><span class="fi-ic" style="--c:#0A0A0A">▤</span><div><b>Weekly report drafted</b><small>Ops agent · 1m ago</small></div><span class="st done">Done</span></div>
+              <div class="feed-item"><span class="fi-ic" style="--c:#262626">⇄</span><div><b>Synced 312 CRM records</b><small>Data agent · 2m ago</small></div><span class="st done">Done</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-copy">
+          <span class="step">03 · Live motion</span>
+          <h3>Watch your agents work in real time</h3>
+          <p>Every action streams into a live feed. Review, approve or step in at any moment — nothing happens in the dark.</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

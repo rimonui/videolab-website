@@ -220,6 +220,7 @@ a { color: inherit; text-decoration: none; }
 .ci-plus { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; color: #fff; background: linear-gradient(135deg, var(--coral), var(--pink)); flex: none; }
 .ci-text { flex: 1; font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ci-ph { color: #A3A3A3; }
+.ci-text.typing-on { text-overflow: clip; }
 .ci-text.typing-on::after { content: ""; display: inline-block; width: 1.5px; height: 14px; background: var(--pink); margin-left: 1px; vertical-align: -2px; animation: blink .9s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .ci-send { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #CFCFCF; transition: background .3s, transform .3s var(--ease); flex: none; }

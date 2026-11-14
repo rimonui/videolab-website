@@ -1,6 +1,7 @@
 (() => {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const sleep = (ms) => new Promise((r) => setTimeout(r, reduce ? Math.min(ms, 60) : ms));
+  const speed = window.__demoSpeed || 1; // recording hook: <1 plays the chat demo faster
+  const sleep = (ms) => new Promise((r) => setTimeout(r, reduce ? Math.min(ms, 60) : ms * speed));
 
   /* ---------- Scroll reveal ---------- */
   const io = new IntersectionObserver((entries) => {
@@ -65,6 +66,7 @@
     input.classList.add('typing-on');
     for (let i = 0; i < text.length; i++) {
       input.textContent = text.slice(0, i + 1);
+      input.scrollLeft = input.scrollWidth;
       if (i === 0) send.classList.add('ready');
       await sleep(26 + Math.random() * 30);
     }

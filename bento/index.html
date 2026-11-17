@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VideoLab — Bento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --page: #ffffff;
+    --card: #f5f5f5;
+    --surface: #ffffff;
+    --ink: #0a0a0a;
+    --ink-2: #3f3f3f;
+    --muted: #737373;
+    --faint: #a3a3a3;
+    --line: #e7e7e7;
+    --dot: #d9d9d9;
+    --ease: cubic-bezier(.22, 1, .36, 1);
+    --spring: cubic-bezier(.34, 1.56, .64, 1);
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 16px -6px rgba(0,0,0,.10), 0 18px 40px -18px rgba(0,0,0,.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--page); }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 48px 24px;
+  }
+
+  /* ---------- Grid ---------- */
+  .bento {
+    width: 100%;
+    max-width: 1120px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .card {
+    position: relative;
+    background: var(--card);
+    border-radius: 22px;
+    overflow: hidden;
+    padding: 0 0 36px;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(24px) scale(.985);
+    transition: opacity .9s var(--ease), transform .9s var(--ease);
+  }
+  .card.in { opacity: 1; transform: none; }
+  .visual {
+    position: relative;
+    height: 300px;
+    display: grid;
+    place-items: center;
+  }
+  /* faint concentric rings behind each widget */
+  .visual::before {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 640px; height: 640px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: repeating-radial-gradient(circle, transparent 0 79px, rgba(0,0,0,.045) 79px 80px);
+    -webkit-mask: radial-gradient(circle, #000 20%, transparent 62%);
+            mask: radial-gradient(circle, #000 20%, transparent 62%);
+    animation: breathe 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes breathe { 50% { scale: 1.06; } }
+  .copy { text-align: center; padding: 0 40px; }
+  .copy h3 {
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    margin-bottom: 10px;
+  }
+  .copy p {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  .card .copy > * { opacity: 0; transform: translateY(10px); transition: all .8s var(--ease); }
+  .card.in .copy > * { opacity: 1; transform: none; }
+  .card.in .copy p { transition-delay: .12s; }
+
+  .stage { position: relative; width: 420px; height: 260px; }
+
+  /* ---------- Shared primitives ---------- */
+  .panel {
+    position: absolute;
+    background: var(--surface);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+  }
+  .ghost {
+    position: absolute;
+    background: rgba(255,255,255,.55);
+    border: 1px solid rgba(0,0,0,.04);
+    border-radius: 14px;
+  }
+  .logo {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    background: var(--ink);
+    display: grid; place-items: center;
+    flex: none;
+  }
+  .logo svg { width: 18px; height: 18px; }
+  .badge {
+    display: inline-flex; align-items: center;
+    font-size: 10.5px; font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--ink); color: #fff;
+    letter-spacing: -.01em;
+  }
+  .badge.soft { background: #ececec; color: var(--ink); }
+  .label { font-size: 11.5px; color: var(--muted); }
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+
+  .cursor {
+    position: absolute; left: 0; top: 0;
+    width: 18px; height: 18px;
+    z-index: 20;
+    pointer-events: none;
+    transition: transform 1s var(--ease);
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
+  }
+  .cursor svg { display: block; transition: scale .15s ease; }
+  .cursor.press svg { scale: .8; }
+  .cursor .tag {
+    position: absolute; left: 14px; top: 18px;
+    background: var(--ink); color: #fff;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 8px; border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  /* ---------- 1. Chat ---------- */
+  .c1 .ghost { left: 80px; top: 6px; width: 260px; height: 40px; }
+  .c1 .profile { left: 50px; top: 18px; width: 320px; padding: 16px; }
+  .c1 .who { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .c1 .who .logo { width: 38px; height: 38px; position: relative; }
+  .c1 .who .logo::after {
+    content: ""; position: absolute; right: -3px; bottom: -3px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--ink); border: 2px solid #fff;
+  }
+  .c1 .who .logo::before {
+    content: ""; position: absolute; right: -3px; bottom: -3px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--ink);
+    animation: ping 2s ease-out infinite;
+  }
+  @keyframes ping { 0% { transform: scale(1); opacity: .5; } 80%, 100% { transform: scale(2.8); opacity: 0; } }
+  .c1 .name { font-weight: 600; font-size: 14px; }
+  .c1 .status { font-size: 12px; color: var(--muted); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; min-height: 52px; align-content: flex-start; }
+  .chip {
+    font-size: 11.5px; font-weight: 500;
+    padding: 3px 9px; border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fafafa; color: var(--ink-2);
+    opacity: 0; transform: translateY(6px) scale(.9);
+    transition: opacity .45s var(--ease), transform .55s var(--spring);
+  }
+  .chip.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .chip.grey { background: #ececec; border-color: #ececec; }
+  .chip.on { opacity: 1; transform: none; }
+
+  .c1 .input {
+    left: 4px; top: 156px; width: 400px; height: 46px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 8px 0 16px;
+    border-radius: 12px;
+  }
+  .c1 .field { flex: 1; font-size: 13.5px; color: var(--faint); white-space: nowrap; overflow: hidden; }
+  .c1 .field.typing { color: var(--ink); }
+  .c1 .field .caret {
+    display: inline-block; width: 1.5px; height: 15px; background: var(--ink);
+    vertical-align: -2px; margin-left: 1px;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .send {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: var(--ink); color: #fff;
+    display: grid; place-items: center;
+    transition: transform .2s var(--spring), background .2s;
+  }
+  .send.press { transform: scale(.86); background: #333; }
+  .c1 .sent {
+    position: absolute; left: 50%; top: 218px;
+    translate: -50% 0;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500; color: var(--ink-2); white-space: nowrap;
+    background: #fff; border-radius: 999px; padding: 5px 11px 5px 8px;
+    box-shadow: var(--shadow);
+    opacity: 0; transform: translateY(8px);
+    transition: all .5s var(--ease);
+  }
+  .c1 .sent.on { opacity: 1; transform: none; }
+  .c1 .sent i { width: 16px; height: 16px; border-radius: 50%; background: var(--ink); display: grid; place-items: center; }
+
+  /* ---------- 2. Profit ---------- */
+  .c2 .visual { overflow: hidden; }
+  .c2 .profit { left: 10px; top: 24px; width: 210px; padding: 14px 16px; }
+  .c2 .profit .row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .c2 .profit .num { font-size: 22px; font-weight: 600; }
+  .c2 .wire { position: absolute; left: 220px; top: 58px; width: 128px; height: 2px; }
+  .c2 .wire::before {
+    content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, #cfcfcf 0 4px, transparent 4px 9px);
+  }
+  .c2 .wire .pulse {
+    position: absolute; top: -2px; left: 0;
+    width: 6px; height: 6px; border-radius: 50%; background: var(--ink);
+    box-shadow: 0 0 0 3px rgba(0,0,0,.08);
+    animation: travel 2.4s var(--ease) infinite;
+  }
+  .c2 .wire .pulse:nth-child(2) { animation-delay: 1.2s; }
+  @keyframes travel { 0% { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: calc(100% - 6px); opacity: 0; } }
+  .c2 .hub { position: absolute; left: 352px; top: 38px; }
+  .c2 .hub .logo { width: 40px; height: 40px; border-radius: 11px; position: relative; box-shadow: var(--shadow); }
+  .c2 .hub .logo::after {
+    content: ""; position: absolute; inset: -6px; border-radius: 15px;
+    border: 1.5px solid var(--ink); opacity: 0;
+    animation: ring 2.4s ease-out infinite; animation-delay: 1.9s;
+  }
+  @keyframes ring { 0% { transform: scale(.85); opacity: .5; } 70%, 100% { transform: scale(1.35); opacity: 0; } }
+  .c2 .details { left: 90px; top: 132px; width: 290px; padding: 6px 16px; z-index: 2; }
+  .c2 .details .line {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12.5px; padding: 10px 0; color: var(--ink-2);
+  }
+  .c2 .details .line + .line { border-top: 1px solid #f0f0f0; }
+  .c2 .details .val { font-weight: 600; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+  .c2 .details .val .tick {
+    width: 16px; height: 16px; border-radius: 50%; background: var(--ink);
+    display: grid; place-items: center;
+    transform: scale(0); transition: transform .5s var(--spring);
+  }
+  .c2 .details .val span { opacity: 0; transform: translateX(6px); transition: all .5s var(--ease); }
+  .c2 .details .line.on .tick { transform: scale(1); }
+  .c2 .details .line.on .val span { opacity: 1; transform: none; }
+  .c2 .side { top: 142px; width: 160px; height: 76px; }
+  .c2 .side.l { left: -120px; animation: drift 6s ease-in-out infinite; }
+  .c2 .side.r { right: -120px; animation: drift 6s ease-in-out infinite reverse; }
+  @keyframes drift { 50% { transform: translateX(10px); } }
+
+  /* ---------- 3. Map ---------- */
+  .c3 .map {
+    position: absolute; inset: 14px 0 0;
+    display: grid; place-items: center;
+    -webkit-mask: radial-gradient(ellipse 62% 70% at 50% 50%, #000 55%, transparent 100%);
+            mask: radial-gradient(ellipse 62% 70% at 50% 50%, #000 55%, transparent 100%);
+  }
+  .c3 .map svg { width: 560px; height: auto; overflow: visible; }
+  .c3 .map circle { fill: var(--dot); transition: fill .6s ease; }
+  .c3 .map circle.hot { fill: #8a8a8a; transition: fill .15s ease; }
+  .c3 .pin { fill: var(--ink) !important; }
+  .c3 .pinring {
+    fill: none; stroke: var(--ink); stroke-width: 1.4;
+    transform-box: fill-box; transform-origin: center;
+    animation: pinring 2.6s ease-out infinite;
+  }
+  @keyframes pinring { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(5); opacity: 0; } }
+  .c3 .tickets { left: 86px; top: 134px; width: 220px; padding: 14px 16px; z-index: 2; }
+  .c3 .tickets .row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 6px; }
+  .c3 .tickets .num { font-size: 24px; font-weight: 600; }
+  .c3 .spark { width: 70px; height: 26px; }
+  .c3 .spark path { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 120; stroke-dashoffset: 120; }
+  .c3 .spark.on path { animation: draw 1.6s var(--ease) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  /* ---------- 4. Chart ---------- */
+  .c4 .ghost { left: 40px; top: 18px; width: 290px; height: 40px; }
+  .c4 .chart { left: 14px; top: 30px; width: 300px; height: 200px; padding: 16px 18px; }
+  .c4 .chart .row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .c4 .chart .num { font-size: 20px; font-weight: 600; }
+  .bars { position: absolute; left: 18px; right: 108px; bottom: 16px; height: 96px; display: flex; align-items: flex-end; gap: 6px; }
+  .bar {
+    flex: 1; border-radius: 3px 3px 1px 1px;
+    background: #e3e3e3;
+    height: var(--h);
+    transform-origin: bottom;
+    transform: scaleY(0);
+    transition: transform .9s var(--spring);
+  }
+  .bar.dark { background: var(--ink); }
+  .bars.on .bar { transform: scaleY(1); }
+  .c4 .list { left: 220px; top: 52px; width: 186px; padding: 8px 10px; z-index: 2; }
+  .c4 .item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11.5px; color: var(--ink-2);
+    padding: 6px 6px; border-radius: 7px;
+    transition: background .3s;
+  }
+  .c4 .item.hl { background: #f3f3f3; }
+  .box {
+    width: 15px; height: 15px; border-radius: 4px; flex: none;
+    border: 1.5px solid #cfcfcf; display: grid; place-items: center;
+    transition: background .25s, border-color .25s;
+  }
+  .box svg { transform: scale(0); transition: transform .4s var(--spring); }
+  .item.on .box { background: var(--ink); border-color: var(--ink); }
+  .item.on .box svg { transform: scale(1); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 920px) {
+    .bento { grid-template-columns: 1fr; max-width: 560px; }
+  }
+  @media (max-width: 480px) {
+    .stage { scale: .78; }
+    .copy { padding: 0 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- reusable glyphs -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="mark" viewBox="0 0 24 24">
+      <rect x="2.5" y="5" width="14" height="14" rx="3.5" fill="none" stroke="#fff" stroke-width="2"/>
+      <path d="M16.5 10.2 21.5 7.5v9l-5-2.7z" fill="#fff"/>
+      <path d="M8 9.5v5l4-2.5z" fill="#fff"/>
+    </symbol>
+    <symbol id="check" viewBox="0 0 12 12">
+      <path d="M2.5 6.2 5 8.5 9.5 3.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="arrow" viewBox="0 0 18 18">
+      <path d="M2 1.5 15.5 8.2 9.2 9.7 6.4 16z" fill="#0a0a0a" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main class="bento">
+
+  <!-- 1 ─ Chat / ordering -->
+  <article class="card c1">
+    <div class="visual">
+      <div class="stage">
+        <div class="ghost"></div>
+        <div class="panel profile">
+          <div class="who">
+            <div class="logo"><svg><use href="#mark"/></svg></div>
+            <div><div class="name">VideoLab</div><div class="status">Online</div></div>
+          </div>
+          <div class="tags">
+            <span class="chip dark">Editing</span>
+            <span class="chip">Color grading</span>
+            <span class="chip grey">Sound design</span>
+            <span class="chip">Motion</span>
+            <span class="chip grey">Captions</span>
+            <span class="chip">Thumbnails</span>
+          </div>
+        </div>
+        <div class="panel input">
+          <div class="field">Type message...</div>
+          <button class="send" aria-label="Send">
+            <svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7h9.5M7.5 3l4 4-4 4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="sent"><i><svg width="10" height="10"><use href="#check"/></svg></i>Brief received · editor assigned</div>
+        <div class="cursor"><svg width="18" height="18"><use href="#arrow"/></svg><span class="tag">You</span></div>
+      </div>
+    </div>
+    <div class="copy">
+      <h3>Slash turnaround time by 40%</h3>
+      <p>Drop your brief in chat and we take it from there. No long email threads, just finished edits back while you focus on growing your channel.</p>
+    </div>
+  </article>
+
+  <!-- 2 ─ Profit -->
+  <article class="card c2">
+    <div class="visual">
+      <div class="ghost side l"></div>
+      <div class="ghost side r"></div>
+      <div class="stage">
+        <div class="panel profit">
+          <div class="label">Profit</div>
+          <div class="row"><span class="num" data-count>$0.00</span><span class="badge">+20%</span></div>
+        </div>
+        <div class="wire"><span class="pulse"></span><span class="pulse"></span></div>
+        <div class="hub"><div class="logo"><svg><use href="#mark"/></svg></div></div>
+        <div class="panel details">
+          <div class="line"><span>Studio-direct pricing</span><span class="val"><span>Included</span><i class="tick"><svg width="10" height="10"><use href="#check"/></svg></i></span></div>
+          <div class="line"><span>Stock footage &amp; music</span><span class="val"><span>Free</span><i class="tick"><svg width="10" height="10"><use href="#check"/></svg></i></span></div>
+          <div class="line"><span>Unlimited revisions</span><span class="val"><span>Yes</span><i class="tick"><svg width="10" height="10"><use href="#check"/></svg></i></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="copy">
+      <h3>Boost profit margins by 20%</h3>
+      <p>Cut production costs without cutting corners. Studio-direct pricing, free stock assets and zero hidden fees.</p>
+    </div>
+  </article>
+
+  <!-- 3 ─ Map / complaints -->
+  <article class="card c3">
+    <div class="visual">
+      <div class="map"><svg id="world"></svg></div>
+      <div class="stage">
+        <div class="panel tickets">
+          <div class="label">Revision requests</div>
+          <div class="row">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="num" data-tickets>48</span><span class="badge soft">-32%</span>
+            </div>
+            <svg class="spark" viewBox="0 0 70 26"><path d="M2 4 L12 7 L20 5 L30 12 L38 10 L48 17 L56 15 L68 22"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="copy">
+      <h3>Reduce client revisions</h3>
+      <p>Consistent quality on every cut. Our review process and fast support mean fewer revisions and happier clients worldwide.</p>
+    </div>
+  </article>
+
+  <!-- 4 ─ Chart / checklist -->
+  <article class="card c4">
+    <div class="visual">
+      <div class="stage">
+        <div class="ghost"></div>
+        <div class="panel chart">
+          <div class="label">Views</div>
+          <div class="row"><span class="num" data-views>0</span><span class="badge">+28%</span></div>
+          <div class="bars">
+            <i class="bar" style="--h:30%"></i><i class="bar" style="--h:18%"></i><i class="bar" style="--h:26%"></i>
+            <i class="bar" style="--h:14%"></i><i class="bar dark" style="--h:62%"></i><i class="bar dark" style="--h:84%"></i>
+            <i class="bar dark" style="--h:70%"></i><i class="bar dark" style="--h:94%"></i><i class="bar dark" style="--h:100%"></i>
+          </div>
+        </div>
+        <div class="panel list">
+          <div class="item"><span class="box"><svg width="10" height="10"><use href="#check"/></svg></span>Scripting</div>
+          <div class="item"><span class="box"><svg width="10" height="10"><use href="#check"/></svg></span>Editing</div>
+          <div class="item"><span class="box"><svg width="10" height="10"><use href="#check"/></svg></span>Color grading</div>
+          <div class="item"><span class="box"><svg width="10" height="10"><use href="#check"/></svg></span>Sound mix</div>
+          <div class="item"><span class="box"><svg width="10" height="10"><use href="#check"/></svg></span>Delivery</div>
+        </div>
+        <div class="cursor"><svg width="18" height="18"><use href="#arrow"/></svg><span class="tag">VideoLab</span></div>
+      </div>
+    </div>
+    <div class="copy">
+      <h3>Never miss a launch</h3>
+      <p>Our in-house pipeline handles every step from script to delivery, so your uploads go live on schedule, every time.</p>
+    </div>
+  </article>
+
+</main>
+
+<script>
+(() => {
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // tween a number into an element
+  function tween(el, from, to, dur, fmt) {
+    return new Promise(res => {
+      const t0 = performance.now();
+      const ease = t => 1 - Math.pow(1 - t, 4);
+      const step = now => {
+        const t = Math.min(1, (now - t0) / dur);
+        el.textContent = fmt(from + (to - from) * ease(t));
+        t < 1 ? requestAnimationFrame(step) : res();
+      };
+      requestAnimationFrame(step);
+    });
+  }
+  const money = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const int = v => Math.round(v).toLocaleString('en-US');
+
+  // move a cursor (inside .stage) to the centre of a target element
+  function moveTo(cursor, target, dx = 0, dy = 0, dur = 1000) {
+    const stage = cursor.parentElement.getBoundingClientRect();
+    const r = target.getBoundingClientRect();
+    const s = stage.width / cursor.parentElement.offsetWidth || 1; // account for css scale
+    const x = (r.left - stage.left + r.width / 2) / s + dx;
+    const y = (r.top - stage.top + r.height / 2) / s + dy;
+    cursor.style.transitionDuration = dur + 'ms';
+    cursor.style.transform = `translate(${x}px, ${y}px)`;
+    return wait(dur);
+  }
+  const place = (cursor, x, y) => {
+    cursor.style.transitionDuration = '0ms';
+    cursor.style.transform = `translate(${x}px, ${y}px)`;
+  };
+  async function click(cursor, target) {
+    cursor.classList.add('press'); target && target.classList.add('press');
+    await wait(160);
+    cursor.classList.remove('press'); target && target.classList.remove('press');
+  }
+
+  /* ---------- 1. Chat loop ---------- */
+  async function chat(card) {
+    const chips = $$('.chip', card);
+    const field = $('.field', card);
+    const send = $('.send', card);
+    const sent = $('.sent', card);
+    const cursor = $('.cursor', card);
+    const msgs = ['Need 3 reels cut by Friday', 'Can you color grade the vlog?', 'Add captions to all shorts'];
+    let n = 0;
+    place(cursor, 300, 40);
+    for (;;) {
+      chips.forEach(c => c.classList.remove('on'));
+      await wait(300);
+      for (const c of chips) { c.classList.add('on'); await wait(140); }
+      await moveTo(cursor, field, -60, 8, 900);
+      await click(cursor);
+      field.classList.add('typing');
+      const msg = msgs[n++ % msgs.length];
+      for (let i = 1; i <= msg.length; i++) {
+        field.innerHTML = msg.slice(0, i) + '<span class="caret"></span>';
+        await wait(38 + Math.random() * 50);
+      }
+      await wait(250);
+      await moveTo(cursor, send, 2, 4, 800);
+      await click(cursor, send);
+      field.classList.remove('typing');
+      field.textContent = 'Type message...';
+      sent.classList.add('on');
+      await wait(400);
+      await moveTo(cursor, field, 120, -70, 1100);
+      await wait(1600);
+      sent.classList.remove('on');
+      await wait(500);
+    }
+  }
+
+  /* ---------- 2. Profit loop ---------- */
+  async function profit(card) {
+    const num = $('[data-count]', card);
+    const lines = $$('.details .line', card);
+    for (;;) {
+      lines.forEach(l => l.classList.remove('on'));
+      num.textContent = money(18240.5);
+      await wait(300);
+      const counting = tween(num, 18240.5, 25485.16, 2400, money);
+      for (const l of lines) { await wait(450); l.classList.add('on'); }
+      await counting;
+      await wait(3200);
+    }
+  }
+
+  /* ---------- 3. Map ---------- */
+  const WORLD = [
+    "                                                                ",
+    "         ######  ####                 #  ######                 ",
+    "   ##################  ##          ##### ################# ##   ",
+    "  ######################         ##  ########################## ",
+    "  ##  ##################        #  ############################ ",
+    "       ################          ###########################  # ",
+    "        ##############          ##########################      ",
+    "         ###########           #############################    ",
+    "         #########             ############################     ",
+    "          ######  #             ###  #####################      ",
+    "           ####                ######## ##############          ",
+    "            ###               ##########  ######   ###          ",
+    "             ##   #           ###########  ####     #           ",
+    "               ######          ##########    ##     #  #        ",
+    "                #######          #######           ## ##        ",
+    "                ########           #####             ## #       ",
+    "                 #######           ######              #   ##   ",
+    "                  #####            #####             ######     ",
+    "                  ####              ####            ########    ",
+    "                  ###               ###             #########   ",
+    "                  ##                 #                 ###  #   ",
+    "                  ##                                         #  ",
+    "                  #                                             ",
+  ];
+  function buildMap(svg) {
+    const G = 9, R = 2.4, NS = 'http://www.w3.org/2000/svg';
+    const W = WORLD[0].length, H = WORLD.length;
+    svg.setAttribute('viewBox', `0 0 ${W * G} ${H * G}`);
+    const land = [];
+    WORLD.forEach((row, y) => [...row].forEach((ch, x) => {
+      if (ch !== '#') return;
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', x * G + G / 2); c.setAttribute('cy', y * G + G / 2); c.setAttribute('r', R);
+      svg.appendChild(c); land.push(c);
+    }));
+    // pinned client locations
+    const pins = [[14, 4], [17, 6], [12, 7], [20, 15], [34, 4], [37, 6], [42, 13], [47, 5], [52, 7], [55, 18]];
+    pins.forEach(([x, y], i) => {
+      const cx = x * G + G / 2, cy = y * G + G / 2;
+      const ring = document.createElementNS(NS, 'circle');
+      ring.setAttribute('cx', cx); ring.setAttribute('cy', cy); ring.setAttribute('r', R);
+      ring.setAttribute('class', 'pinring'); ring.style.animationDelay = (i * 0.37) + 's';
+      const dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx', cx); dot.setAttribute('cy', cy); dot.setAttribute('r', R + .6);
+      dot.setAttribute('class', 'pin');
+      svg.append(ring, dot);
+    });
+    // twinkle
+    if (!reduced) setInterval(() => {
+      const c = land[(Math.random() * land.length) | 0];
+      c.classList.add('hot');
+      setTimeout(() => c.classList.remove('hot'), 450);
+    }, 70);
+  }
+  async function tickets(card) {
+    const num = $('[data-tickets]', card);
+    const spark = $('.spark', card);
+    for (;;) {
+      num.textContent = '48';
+      spark.classList.remove('on'); void spark.offsetWidth;
+      await wait(400);
+      spark.classList.add('on');
+      await tween(num, 48, 20, 2200, int);
+      await wait(3800);
+    }
+  }
+
+  /* ---------- 4. Chart loop ---------- */
+  async function chart(card) {
+    const bars = $('.bars', card);
+    const views = $('[data-views]', card);
+    const items = $$('.item', card);
+    const cursor = $('.cursor', card);
+    place(cursor, 400, 240);
+    for (;;) {
+      bars.classList.remove('on');
+      items.forEach(i => i.classList.remove('on', 'hl'));
+      views.textContent = '0';
+      await wait(500);
+      bars.classList.add('on');
+      $$('.bar', card).forEach((b, i) => b.style.transitionDelay = (i * 70) + 'ms');
+      tween(views, 0, 1284905, 2000, int);
+      for (const it of items) {
+        await moveTo(cursor, $('.box', it), 3, 3, 520);
+        it.classList.add('hl');
+        await click(cursor);
+        it.classList.add('on');
+        await wait(160);
+        it.classList.remove('hl');
+      }
+      await moveTo(cursor, items[items.length - 1], 40, 50, 900);
+      await wait(2600);
+    }
+  }
+
+  /* ---------- Boot ---------- */
+  buildMap($('#world'));
+  const cards = $$('.card');
+  const runners = [chat, profit, tickets, chart];
+  const started = new WeakSet();
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (!e.isIntersecting || started.has(e.target)) return;
+    started.add(e.target);
+    const i = cards.indexOf(e.target);
+    setTimeout(() => {
+      e.target.classList.add('in');
+      if (reduced) return;
+      setTimeout(() => runners[i](e.target), 500);
+    }, i * 140);
+  }), { threshold: .25 });
+  cards.forEach(c => io.observe(c));
+
+  if (reduced) { // show the finished state
+    $$('.chip, .details .line, .item').forEach(e => e.classList.add('on'));
+    $('.bars').classList.add('on');
+    $('[data-count]').textContent = money(25485.16);
+    $('[data-tickets]').textContent = '20';
+    $('[data-views]').textContent = int(1284905);
+  }
+})();
+</script>
+</body>
+</html>

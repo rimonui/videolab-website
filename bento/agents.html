@@ -161,7 +161,7 @@
   .b .node.hit svg { transform: scale(1.18); }
   .b .node::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 1.5px solid var(--ink); opacity: 0; }
   .b .node.hit::after { animation: ring .8s ease-out; }
-  .b .packet { position: absolute; left: 0; top: 0; z-index: 2; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 3px rgba(0,0,0,.08); }
+  .b .packet { position: absolute; left: 0; top: 0; z-index: 2; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 3px rgba(0,0,0,.08); }
   .b .count {
     position: absolute; right: 14px; top: 14px; z-index: 5;
     display: inline-flex; align-items: center; gap: 6px;
@@ -528,7 +528,8 @@
     });
     const rad = d => d * Math.PI / 180;
     let t0 = performance.now();
-    const frame = now => {
+    const frame = () => {
+      const now = performance.now();
       const spin = (now - t0) / 1000 * 6; // deg per second
       for (const n of nodes) {
         n.a = (n.base + spin) % 360;
@@ -552,7 +553,8 @@
       const dot = document.createElement('span'); dot.className = 'packet'; vis.appendChild(dot);
       n.el.classList.remove('hit'); void n.el.offsetWidth; n.el.classList.add('hit');
       const s0 = performance.now(), dur = 1100;
-      const step = now => {
+      const step = () => {
+        const now = performance.now();
         const t = Math.min(1, (now - s0) / dur), e = t * t * (3 - 2 * t);
         const r = (n.len - 30) - e * (n.len - 64);
         const x = cx + n.ux * r, y = cy + n.uy * r;
@@ -566,9 +568,9 @@
       requestAnimationFrame(step);
     };
     for (;;) {
-      const live = nodes.filter(n => n.vis > .85);
-      if (live.length) fire(live[(Math.random() * live.length) | 0]);
-      await wait(520);
+      // one wave: every visible logo sends a packet to the agent together
+      nodes.filter(n => n.vis > .3).forEach(n => setTimeout(() => fire(n), Math.random() * 90));
+      await wait(1700);
     }
   }
 

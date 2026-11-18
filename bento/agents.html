@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Agent — Bento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --page: #efefef;
+    --card: #ffffff;
+    --well: #f6f6f6;
+    --ink: #0a0a0a;
+    --ink-2: #404040;
+    --muted: #6b6b6b;
+    --faint: #a8a8a8;
+    --line: #e6e6e6;
+    --bar: #e4e4e4;
+    --ease: cubic-bezier(.22, 1, .36, 1);
+    --inout: cubic-bezier(.65, 0, .35, 1);
+    --spring: cubic-bezier(.34, 1.56, .64, 1);
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 20px -8px rgba(0,0,0,.14), 0 24px 48px -24px rgba(0,0,0,.16);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--page); }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: grid; place-items: center;
+    padding: 56px 24px;
+  }
+
+  /* ---------- Grid ---------- */
+  .bento {
+    width: 100%; max-width: 1080px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid #e9e9e9;
+    border-radius: 18px;
+    padding: 8px 8px 22px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    opacity: 0; transform: translateY(22px);
+    transition: opacity .9s var(--ease), transform .9s var(--ease);
+  }
+  .card.in { opacity: 1; transform: none; }
+  .a, .d { grid-column: span 2; }
+  .b, .c { grid-column: span 3; }
+
+  .visual {
+    position: relative;
+    height: 250px;
+    border-radius: 12px;
+    overflow: hidden;
+    background:
+      linear-gradient(var(--well), transparent 30%, transparent 70%, var(--well)),
+      linear-gradient(90deg, var(--well), transparent 20%, transparent 80%, var(--well)),
+      linear-gradient(rgba(0,0,0,.045) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, rgba(0,0,0,.045) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--well);
+    border: 1px solid #ededed;
+  }
+  .copy { padding: 18px 10px 0; }
+  .copy h3 { font-size: 18px; font-weight: 600; letter-spacing: -.02em; margin-bottom: 6px; }
+  .copy p { font-size: 13.5px; line-height: 1.55; color: var(--muted); max-width: 420px; }
+  .center { position: absolute; left: 50%; translate: -50% 0; }
+
+  /* ---------- Shared ---------- */
+  .panel { position: absolute; background: #fff; border-radius: 12px; box-shadow: var(--shadow); }
+  .ln { display: block; height: 7px; border-radius: 4px; background: var(--bar); transition: background .5s var(--ease), transform .5s var(--ease); }
+  .spark { fill: currentColor; }
+  .cursor {
+    position: absolute; left: 0; top: 0; z-index: 30; pointer-events: none;
+    transition: transform 1s var(--inout);
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
+  }
+  .cursor svg.arrow { display: block; transition: scale .15s ease; }
+  .cursor.press svg.arrow { scale: .8; }
+  .cursor .tag {
+    position: absolute; left: 13px; top: 17px;
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--ink); color: #fff;
+    font-size: 10.5px; font-weight: 600;
+    padding: 3px 7px 3px 6px; border-radius: 6px; white-space: nowrap;
+  }
+
+  /* ---------- A · Content generation ---------- */
+  .a .toolbar {
+    top: 18px; z-index: 3;
+    display: flex; align-items: center; gap: 4px;
+    background: #fff; border-radius: 10px; padding: 4px;
+    box-shadow: var(--shadow);
+  }
+  .a .gen {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: var(--ink);
+    background: #f1f1f1; border-radius: 7px; padding: 5px 9px;
+    transition: background .25s, color .25s, transform .2s var(--spring);
+  }
+  .a .gen.active { background: var(--ink); color: #fff; }
+  .a .gen.press { transform: scale(.92); }
+  .a .gen svg { width: 11px; height: 11px; }
+  .a .gen.active svg { animation: spin 1.2s linear infinite; }
+  @keyframes spin { to { rotate: 360deg; } }
+  .a .ic { width: 24px; height: 24px; display: grid; place-items: center; color: var(--faint); }
+  .a .doc { top: 60px; width: 290px; height: 230px; padding: 18px 18px; }
+  .a .doc .hi { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+  .a .doc .txt { font-size: 11.5px; line-height: 1.75; color: var(--ink-2); min-height: 80px; position: relative; }
+  .a .doc .txt .caret { display: inline-block; width: 1.5px; height: 12px; background: var(--ink); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .a .hl { border-radius: 3px; padding: 1px 0; background: linear-gradient(#e2e2e2, #e2e2e2) no-repeat 0 0 / 0% 100%; transition: background-size .7s var(--ease), font-weight .2s; }
+  .a .hl.on { background-size: 100% 100%; }
+  .a .hl.bold { font-weight: 700; color: var(--ink); }
+  .a .fmt {
+    position: absolute; z-index: 4;
+    display: flex; gap: 2px; background: var(--ink); border-radius: 7px; padding: 3px;
+    opacity: 0; transform: translateY(6px) scale(.96);
+    transition: opacity .35s var(--ease), transform .45s var(--spring);
+  }
+  .a .fmt.on { opacity: 1; transform: none; }
+  .a .fmt span { width: 20px; height: 20px; display: grid; place-items: center; color: #cfcfcf; font-size: 11px; font-weight: 700; border-radius: 4px; transition: background .2s, color .2s; }
+  .a .fmt span.hit { background: #fff; color: var(--ink); }
+  .a .doc .ln { margin-top: 9px; }
+  .a .fade { transition: opacity .5s ease; }
+  .a .fade.out { opacity: 0; }
+
+  /* ---------- B · Connected stack ---------- */
+  .b .cloud { top: 32px; width: 400px; animation: float 6s ease-in-out infinite; }
+  .b .cloud > svg { width: 400px; height: 200px; display: block; filter: drop-shadow(0 18px 24px rgba(0,0,0,.08)) drop-shadow(0 2px 3px rgba(0,0,0,.05)); }
+  @keyframes float { 50% { transform: translateY(-6px); } }
+  .b .tiles { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 22px; padding-top: 18px; }
+  .tile {
+    width: 50px; height: 50px; border-radius: 13px;
+    background: linear-gradient(#fff, #f1f1f1);
+    box-shadow: 0 1px 0 #fff inset, 0 0 0 1px rgba(0,0,0,.06), 0 8px 16px -6px rgba(0,0,0,.25);
+    display: grid; place-items: center;
+    animation: bob 3.2s ease-in-out infinite;
+    position: relative;
+  }
+  .tile:nth-child(3) { animation-delay: -1.6s; }
+  .tile svg { width: 24px; height: 24px; }
+  .tile.core {
+    width: 62px; height: 62px; border-radius: 16px;
+    background: linear-gradient(#2a2a2a, #000);
+    box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 12px 22px -8px rgba(0,0,0,.55);
+    color: #fff; animation-delay: -.8s;
+  }
+  .tile.core svg { width: 28px; height: 28px; animation: twinkle 3s ease-in-out infinite; }
+  .tile.core::after {
+    content: ""; position: absolute; inset: -7px; border-radius: 21px;
+    border: 1.5px solid rgba(0,0,0,.35); opacity: 0;
+  }
+  .tile.core.hit::after { animation: ring .9s ease-out; }
+  @keyframes ring { 0% { transform: scale(.9); opacity: .7; } 100% { transform: scale(1.3); opacity: 0; } }
+  @keyframes bob { 50% { transform: translateY(-5px); } }
+  @keyframes twinkle { 50% { transform: scale(.82) rotate(45deg); } }
+  .b .chip {
+    position: absolute; z-index: 2;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #fff; border-radius: 999px; padding: 5px 10px 5px 6px;
+    font-size: 11px; font-weight: 500; color: var(--ink-2);
+    box-shadow: var(--shadow);
+    opacity: 0; transform: scale(.85);
+    transition: opacity .6s var(--ease), transform .7s var(--spring);
+  }
+  .b .chip.on { opacity: 1; transform: none; }
+  .b .chip i { width: 18px; height: 18px; border-radius: 50%; background: #efefef; display: grid; place-items: center; }
+  .b .chip i svg { width: 11px; height: 11px; }
+  .b .wires { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .b .wires path { fill: none; stroke: #cdcdcd; stroke-width: 1.2; stroke-dasharray: 3 5; animation: dash 1.2s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -16; } }
+  .b .packet { position: absolute; left: 0; top: 0; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 3px rgba(0,0,0,.08); opacity: 0; }
+
+  /* ---------- C · Automated analysis ---------- */
+  .c .rings { position: absolute; left: 50%; bottom: -230px; translate: -50% 0; width: 520px; height: 520px; }
+  .c .rings span { position: absolute; inset: 0; border-radius: 50%; border: 1px solid #dcdcdc; }
+  .c .rings span:nth-child(1) { background: radial-gradient(circle, #fff 45%, rgba(255,255,255,0) 72%); border-color: #d6d6d6; }
+  .c .rings span:nth-child(2) { inset: 40px; border-style: dashed; animation: spin 40s linear infinite; }
+  .c .rings span:nth-child(3) { inset: 80px; border-color: #cfcfcf; }
+  .c .rings span:nth-child(4) { inset: -60px; border-color: #e6e6e6; }
+  .c .tw { position: absolute; color: #9a9a9a; animation: tw 2.8s ease-in-out infinite; }
+  @keyframes tw { 0%, 100% { opacity: .15; transform: scale(.6); } 50% { opacity: 1; transform: scale(1); } }
+  .c .page {
+    top: 30px; width: 210px; height: 250px;
+    background: #fff; border-radius: 10px;
+    clip-path: polygon(0 0, calc(100% - 34px) 0, 100% 34px, 100% 100%, 0 100%);
+    box-shadow: var(--shadow);
+    padding: 22px 18px;
+  }
+  .c .fold {
+    position: absolute; top: 30px; width: 34px; height: 34px;
+    left: calc(50% + 105px - 34px);
+    background: linear-gradient(225deg, transparent 50%, #e9e9e9 50%);
+    border-bottom-left-radius: 6px;
+    filter: drop-shadow(-2px 3px 3px rgba(0,0,0,.12));
+  }
+  .c .pagewrap { position: absolute; inset: 0; filter: drop-shadow(0 18px 22px rgba(0,0,0,.10)); }
+  .c .page .ln { margin-bottom: 11px; }
+  .c .page .ln.h { height: 10px; width: 55%; background: #d8d8d8; margin-bottom: 16px; }
+  .c .page .ln.on { background: var(--ink); transform: scaleX(1.02); }
+  .c .lens {
+    position: absolute; left: 0; top: 0; z-index: 5;
+    width: 74px; height: 74px; margin: -37px 0 0 -37px;
+    transition: transform 1.1s var(--inout);
+  }
+  .c .lens .glass {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.75), rgba(255,255,255,.15) 45%, rgba(0,0,0,.04));
+    backdrop-filter: blur(.4px) contrast(1.2);
+    border: 6px solid #1c1c1c;
+    box-shadow: 0 0 0 1px #000, inset 0 0 0 2px rgba(255,255,255,.35), 0 10px 20px -6px rgba(0,0,0,.45);
+  }
+  .c .lens .handle {
+    position: absolute; left: -26px; top: 58px; width: 40px; height: 12px;
+    border-radius: 6px; background: linear-gradient(#3a3a3a, #000);
+    rotate: -45deg; transform-origin: right center;
+  }
+  .c .insight {
+    position: absolute; z-index: 6; left: 0; top: 0;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--ink); color: #fff; border-radius: 8px;
+    font-size: 11px; font-weight: 500; padding: 6px 9px 6px 7px;
+    white-space: nowrap; box-shadow: 0 10px 20px -8px rgba(0,0,0,.5);
+    opacity: 0; transform: translateX(-6px) scale(.95);
+    transition: opacity .4s var(--ease), transform .5s var(--spring);
+  }
+  .c .insight.on { opacity: 1; transform: none; }
+
+  /* ---------- D · Emails ---------- */
+  .d .env { left: 50%; bottom: -30px; width: 280px; height: 180px; translate: -50% 0; position: absolute; perspective: 900px; }
+  .d .back { position: absolute; inset: 0; border-radius: 10px; background: linear-gradient(#e6e6e6, #dedede); }
+  .d .letter {
+    position: absolute; left: 24px; right: 24px; top: 14px; height: 170px;
+    background: #fff; border-radius: 8px; padding: 16px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    transform: translateY(-96px);
+    transition: transform 1s var(--inout);
+    z-index: 2;
+  }
+  .d .letter.in { transform: translateY(8px); }
+  .d .letter .top { display: flex; align-items: center; gap: 7px; margin-bottom: 12px; }
+  .d .letter .av { width: 20px; height: 20px; border-radius: 6px; background: var(--ink); color: #fff; display: grid; place-items: center; }
+  .d .letter .av svg { width: 11px; height: 11px; }
+  .d .letter .sub { font-size: 11px; font-weight: 600; }
+  .d .letter .ln { margin-bottom: 8px; transform-origin: left; transform: scaleX(0); transition: transform .6s var(--ease); }
+  .d .letter .ln.on { transform: scaleX(1); }
+  .d .front { position: absolute; inset: 0; z-index: 3; filter: drop-shadow(0 -2px 4px rgba(0,0,0,.06)); }
+  .d .front svg { width: 100%; height: 100%; display: block; }
+  .d .flap {
+    position: absolute; left: 0; top: 0; width: 280px; height: 108px; z-index: 1;
+    transform-origin: top center; transform: rotateX(180deg);
+    transition: transform .8s var(--inout), z-index 0s linear .4s;
+  }
+  .d .flap svg { width: 100%; height: 100%; display: block; }
+  .d .flap.shut { transform: rotateX(0deg); z-index: 4; }
+  .d .seal {
+    position: absolute; left: 50%; top: 82px; z-index: 5; width: 50px; height: 50px; margin-left: -25px;
+    opacity: 0; transform: scale(1.8) rotate(-30deg);
+    transition: opacity .25s ease, transform .55s var(--spring);
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,.35));
+  }
+  .d .seal.on { opacity: 1; transform: none; }
+  .d .sent {
+    position: absolute; top: 18px; right: 18px; z-index: 6;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #fff; border-radius: 999px; padding: 5px 11px 5px 6px;
+    font-size: 11px; font-weight: 500; color: var(--ink-2); box-shadow: var(--shadow);
+    opacity: 0; transform: translateY(-6px);
+    transition: all .5s var(--ease);
+  }
+  .d .sent.on { opacity: 1; transform: none; }
+  .d .sent i { width: 16px; height: 16px; border-radius: 50%; background: var(--ink); display: grid; place-items: center; }
+
+  @media (max-width: 900px) {
+    .bento { grid-template-columns: 1fr; max-width: 520px; }
+    .a, .b, .c, .d { grid-column: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="spark" viewBox="0 0 24 24"><path class="spark" d="M12 1.5c.6 5.4 3.6 9.5 10.5 10.5-6.9 1-9.9 5.1-10.5 10.5C11.4 17.1 8.4 13 1.5 12 8.4 11 11.4 6.9 12 1.5z"/></symbol>
+    <symbol id="check" viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.5 9.5 3.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="arrow" viewBox="0 0 18 18"><path d="M2 1.5 15.5 8.2 9.2 9.7 6.4 16z" fill="#0a0a0a" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+    <radialGradient id="wax" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#4a4a4a"/><stop offset=".55" stop-color="#151515"/><stop offset="1" stop-color="#000"/></radialGradient>
+    <linearGradient id="cloudg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#f2f2f2"/></linearGradient>
+    <linearGradient id="envf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbfb"/><stop offset="1" stop-color="#f0f0f0"/></linearGradient>
+  </defs>
+</svg>
+
+<main class="bento">
+
+  <!-- A · Content generation -->
+  <article class="card a">
+    <div class="visual">
+      <div class="center toolbar">
+        <span class="gen"><svg><use href="#spark"/></svg>Generate</span>
+        <span class="ic"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h10M3 8h10M3 13h6"/></svg></span>
+        <span class="ic"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h7M5.5 2v2M3.5 4c.5 3 2.5 5 5 6M8 4c-.5 3-2.5 5-5 6M9 14l3-7 3 7M10 12h4"/></svg></span>
+        <span class="ic"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M5.5 8h5M8 5.5v5"/></svg></span>
+      </div>
+      <div class="panel doc center">
+        <div class="fade">
+          <div class="hi">Hi Sarah,</div>
+          <div class="txt"></div>
+          <span class="ln" style="width:92%"></span>
+          <span class="ln" style="width:70%"></span>
+        </div>
+        <div class="fmt"><span>B</span><span style="font-style:italic">I</span><span style="text-decoration:underline">U</span><span>≡</span></div>
+      </div>
+      <div class="cursor"><svg class="arrow" width="18" height="18"><use href="#arrow"/></svg><span class="tag"><svg width="9" height="9" style="color:#fff"><use href="#spark"/></svg>Agent</span></div>
+    </div>
+    <div class="copy">
+      <h3>Content generation</h3>
+      <p>The agent turns visitor intent into on-brand replies, proposals and landing copy in seconds.</p>
+    </div>
+  </article>
+
+  <!-- B · Connected stack -->
+  <article class="card b">
+    <div class="visual">
+      <svg class="wires"></svg>
+      <div class="center cloud">
+        <svg viewBox="0 0 400 200"><path fill="url(#cloudg)" stroke="#ececec" d="M86 176c-44 0-66-30-54-60 9-22 32-30 52-27 2-38 36-62 72-52 14-34 58-44 86-22 22-24 66-20 82 12 34-4 60 22 52 54 26 8 34 40 16 62-10 16-28 33-58 33z"/></svg>
+        <div class="tiles">
+          <div class="tile"><svg viewBox="0 0 24 24"><rect x="5" y="12" width="3.2" height="7" rx="1.2" fill="#9a9a9a"/><rect x="10.4" y="8" width="3.2" height="11" rx="1.2" fill="#555"/><rect x="15.8" y="4" width="3.2" height="15" rx="1.2" fill="#0a0a0a"/></svg></div>
+          <div class="tile core"><svg><use href="#spark"/></svg></div>
+          <div class="tile"><svg viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5z" fill="#0a0a0a"/><circle cx="9" cy="10" r="1.2" fill="#fff"/><circle cx="12" cy="10" r="1.2" fill="#fff"/><circle cx="15" cy="10" r="1.2" fill="#fff"/></svg></div>
+        </div>
+      </div>
+      <span class="chip" style="left:7%;top:12%"><i><svg viewBox="0 0 12 12"><circle cx="6" cy="4" r="2.2" fill="#0a0a0a"/><path d="M2 11c.5-2.5 2-3.5 4-3.5s3.5 1 4 3.5" fill="#0a0a0a"/></svg></i>CRM</span>
+      <span class="chip" style="right:7%;top:12%"><i><svg viewBox="0 0 12 12"><rect x="1.5" y="2.5" width="9" height="7" rx="1.5" fill="none" stroke="#0a0a0a" stroke-width="1.3"/><path d="M2 3.5 6 6.5l4-3" fill="none" stroke="#0a0a0a" stroke-width="1.3"/></svg></i>Inbox</span>
+      <span class="chip" style="left:9%;bottom:12%"><i><svg viewBox="0 0 12 12"><path d="M2 2h5l3 3v5H2z" fill="none" stroke="#0a0a0a" stroke-width="1.3" stroke-linejoin="round"/></svg></i>Docs</span>
+      <span class="chip" style="right:9%;bottom:12%"><i><svg viewBox="0 0 12 12"><rect x="1.5" y="2" width="9" height="8.5" rx="1.5" fill="none" stroke="#0a0a0a" stroke-width="1.3"/><path d="M1.5 5h9M4 1v2M8 1v2" stroke="#0a0a0a" stroke-width="1.3"/></svg></i>Calendar</span>
+    </div>
+    <div class="copy">
+      <h3>Connected to your entire stack</h3>
+      <p>One agent that plugs into your CRM, analytics, inbox and docs, so every answer is grounded in real data.</p>
+    </div>
+  </article>
+
+  <!-- C · Automated analysis -->
+  <article class="card c">
+    <div class="visual">
+      <div class="rings"><span></span><span></span><span></span><span></span></div>
+      <svg class="tw" style="left:22%;top:30%;animation-delay:-.4s" width="12" height="12"><use href="#spark"/></svg>
+      <svg class="tw" style="left:16%;top:62%;animation-delay:-1.4s" width="9" height="9"><use href="#spark"/></svg>
+      <svg class="tw" style="right:20%;top:24%;animation-delay:-2s" width="10" height="10"><use href="#spark"/></svg>
+      <svg class="tw" style="right:15%;top:58%;animation-delay:-.9s" width="13" height="13"><use href="#spark"/></svg>
+      <svg class="tw" style="left:33%;top:14%;animation-delay:-2.4s" width="7" height="7"><use href="#spark"/></svg>
+      <div class="pagewrap">
+        <div class="center page">
+          <span class="ln h"></span>
+          <span class="ln" style="width:100%"></span>
+          <span class="ln" style="width:86%"></span>
+          <span class="ln" style="width:94%"></span>
+          <span class="ln" style="width:62%"></span>
+          <span class="ln" style="width:100%"></span>
+          <span class="ln" style="width:78%"></span>
+          <span class="ln" style="width:90%"></span>
+          <span class="ln" style="width:55%"></span>
+        </div>
+        <div class="fold"></div>
+      </div>
+      <div class="insight"><svg width="11" height="11" style="color:#fff"><use href="#spark"/></svg><span></span></div>
+      <div class="lens"><div class="handle"></div><div class="glass"></div></div>
+    </div>
+    <div class="copy">
+      <h3>Automated analysis</h3>
+      <p>The agent reads every session, page and conversation, then highlights what actually matters before you even ask.</p>
+    </div>
+  </article>
+
+  <!-- D · Emails -->
+  <article class="card d">
+    <div class="visual">
+      <div class="sent"><i><svg width="10" height="10"><use href="#check"/></svg></i><span>Sent to 1,284 leads</span></div>
+      <div class="env">
+        <div class="back"></div>
+        <div class="flap"><svg viewBox="0 0 280 108" preserveAspectRatio="none"><path d="M0 8Q0 0 10 0H270Q280 0 280 8L150 102Q140 108 130 102Z" fill="#e9e9e9" stroke="#e0e0e0"/></svg></div>
+        <div class="letter">
+          <div class="top"><span class="av"><svg><use href="#spark"/></svg></span><span class="sub">Your personalized offer</span></div>
+          <span class="ln" style="width:100%"></span>
+          <span class="ln" style="width:84%"></span>
+          <span class="ln" style="width:92%"></span>
+          <span class="ln" style="width:60%"></span>
+        </div>
+        <div class="front"><svg viewBox="0 0 280 180" preserveAspectRatio="none">
+          <path d="M0 10Q0 4 5 7L140 96 275 7Q280 4 280 10V170Q280 180 270 180H10Q0 180 0 170Z" fill="url(#envf)"/>
+          <path d="M2 176 116 82M278 176 164 82" stroke="#e2e2e2" stroke-width="1.2" fill="none"/>
+        </svg></div>
+        <svg class="seal" viewBox="0 0 50 50">
+          <path fill="url(#wax)" d="M25 2c4 0 5 3 8 4s6-1 8 2 0 6 2 9 4 4 3 8-4 4-4 8 2 6-1 9-6 0-9 2-4 5-7 5-5-3-8-4-6 2-8-1-1-6-3-9-5-4-4-8 3-5 3-8-3-6 0-9 6 0 9-2 3-5 7-5z"/>
+          <circle cx="25" cy="25" r="13" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>
+          <use href="#spark" x="17" y="17" width="16" height="16" style="color:#d9d9d9"/>
+        </svg>
+      </div>
+    </div>
+    <div class="copy">
+      <h3>Follow-ups on autopilot</h3>
+      <p>Personalized emails for leads and customers, written from your data and sent at the right moment.</p>
+    </div>
+  </article>
+
+</main>
+
+<script>
+(() => {
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // position of el's centre relative to container (unscaled)
+  function rel(el, box, ax = .5, ay = .5) {
+    const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
+    return [r.left - b.left + r.width * ax, r.top - b.top + r.height * ay];
+  }
+  function go(el, x, y, dur) {
+    el.style.transitionDuration = dur + 'ms';
+    el.style.transform = `translate(${x}px, ${y}px)`;
+    return wait(dur);
+  }
+
+  /* ---------- A ---------- */
+  async function writer(card) {
+    const vis = $('.visual', card), cur = $('.cursor', card);
+    const gen = $('.gen', card), txt = $('.txt', card), fmt = $('.fmt', card), fade = $('.fade', card);
+    const before = 'Thanks for checking out our pricing page. For a team of 12, the Pro plan ';
+    const key = 'saves you 38% a year';
+    const after = ' and includes priority onboarding.';
+    const full = before + key + after;
+    go(cur, 330, 200, 0);
+    for (;;) {
+      txt.innerHTML = '<span class="caret"></span>';
+      fade.classList.remove('out');
+      await wait(300);
+      await go(cur, ...rel(gen, vis, .5, .6), 900);
+      gen.classList.add('press'); cur.classList.add('press');
+      await wait(160);
+      gen.classList.remove('press'); cur.classList.remove('press');
+      gen.classList.add('active');
+      await go(cur, ...rel(gen, vis, 1.2, 1.4), 500);
+      for (let i = 1; i <= full.length; i++) {
+        const s = full.slice(0, i);
+        const a = s.slice(0, before.length), k = s.slice(before.length, before.length + key.length), z = s.slice(before.length + key.length);
+        txt.innerHTML = a + (k ? `<span class="hl">${k}</span>` : '') + z + '<span class="caret"></span>';
+        await wait(16 + Math.random() * 22);
+      }
+      gen.classList.remove('active');
+      txt.querySelector('.caret').remove();
+      await wait(400);
+      const hl = $('.hl', txt);
+      hl.classList.add('on');
+      const doc = $('.doc', card);
+      const [hx, hy] = rel(hl, doc, 0, 0);
+      fmt.style.left = Math.max(8, hx - 4) + 'px';
+      fmt.style.top = (hy - 34) + 'px';
+      await wait(350);
+      fmt.classList.add('on');
+      const b = fmt.children[0];
+      await go(cur, ...rel(b, vis, .55, .6), 800);
+      cur.classList.add('press'); b.classList.add('hit');
+      await wait(160);
+      cur.classList.remove('press');
+      hl.classList.add('bold');
+      await wait(500);
+      fmt.classList.remove('on'); b.classList.remove('hit');
+      await go(cur, 330, 200, 1000);
+      await wait(1400);
+      fade.classList.add('out');
+      await wait(600);
+    }
+  }
+
+  /* ---------- B ---------- */
+  async function stack(card) {
+    const vis = $('.visual', card), core = $('.core', card), svg = $('.wires', card);
+    const chips = $$('.chip', card);
+    for (const c of chips) { c.classList.add('on'); await wait(160); }
+    await wait(400);
+    // build curved wires from each chip to the core
+    const NS = 'http://www.w3.org/2000/svg';
+    const paths = chips.map(c => {
+      const [x1, y1] = rel(c, vis);
+      const [x2, y2] = rel(core, vis);
+      const mx = (x1 + x2) / 2, d = `M${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+      const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); svg.appendChild(p);
+      return p;
+    });
+    svg.style.opacity = 0; svg.style.transition = 'opacity .8s'; requestAnimationFrame(() => svg.style.opacity = 1);
+    const fire = p => {
+      const dot = document.createElement('span'); dot.className = 'packet'; vis.appendChild(dot);
+      const L = p.getTotalLength(), t0 = performance.now(), dur = 1400;
+      const step = now => {
+        const t = Math.min(1, (now - t0) / dur), e = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const pt = p.getPointAtLength(L * e);
+        dot.style.transform = `translate(${pt.x}px, ${pt.y}px)`;
+        dot.style.opacity = t < .1 ? t * 10 : t > .85 ? (1 - t) / .15 : 1;
+        if (t < 1) requestAnimationFrame(step);
+        else { dot.remove(); core.classList.remove('hit'); void core.offsetWidth; core.classList.add('hit'); }
+      };
+      requestAnimationFrame(step);
+    };
+    let i = 0;
+    for (;;) { fire(paths[i++ % paths.length]); await wait(650); }
+  }
+
+  /* ---------- C ---------- */
+  async function analysis(card) {
+    const vis = $('.visual', card), lens = $('.lens', card), chip = $('.insight', card);
+    const lines = $$('.page .ln:not(.h)', card);
+    const notes = [[1, 'Pricing page drives 64% of sign-ups'], [4, 'Drop-off spikes at checkout'], [6, 'Peak traffic: 9 PM on Fridays']];
+    const [sx, sy] = rel($('.page', card), vis, .2, .25);
+    go(lens, sx - 40, sy, 0);
+    for (;;) {
+      for (const [idx, text] of notes) {
+        const ln = lines[idx];
+        const [x, y] = rel(ln, vis, .55, .5);
+        await go(lens, x, y, 1200);
+        ln.classList.add('on');
+        $('span', chip).textContent = text;
+        const [rx, ry] = rel($('.page', card), vis, 1, 0);
+        chip.style.left = (rx - 30) + 'px';
+        chip.style.top = (y - 16) + 'px';
+        chip.classList.add('on');
+        await wait(1500);
+        chip.classList.remove('on');
+        await wait(150);
+      }
+      await wait(600);
+      lines.forEach(l => l.classList.remove('on'));
+      await go(lens, sx - 40, sy, 1200);
+    }
+  }
+
+  /* ---------- D ---------- */
+  async function mail(card) {
+    const letter = $('.letter', card), flap = $('.flap', card), seal = $('.seal', card), sent = $('.sent', card);
+    const lns = $$('.letter .ln', card);
+    const counter = $('.sent span', card);
+    let total = 1284;
+    for (;;) {
+      // letter is out, agent writes it
+      for (const l of lns) { l.classList.add('on'); await wait(260); }
+      await wait(700);
+      letter.classList.add('in');
+      await wait(700);
+      flap.classList.add('shut');
+      await wait(650);
+      seal.classList.add('on');
+      await wait(450);
+      total += 37 + (Math.random() * 40 | 0);
+      counter.textContent = `Sent to ${total.toLocaleString('en-US')} leads`;
+      sent.classList.add('on');
+      await wait(2200);
+      sent.classList.remove('on');
+      seal.classList.remove('on');
+      await wait(300);
+      flap.classList.remove('shut');
+      await wait(500);
+      lns.forEach(l => l.classList.remove('on'));
+      letter.classList.remove('in');
+      await wait(1100);
+    }
+  }
+
+  /* ---------- Boot ---------- */
+  const cards = $$('.card');
+  const runners = { a: writer, b: stack, c: analysis, d: mail };
+  const started = new WeakSet();
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting || started.has(e.target)) return;
+    started.add(e.target);
+    const i = cards.indexOf(e.target);
+    setTimeout(() => {
+      e.target.classList.add('in');
+      if (reduced) return;
+      const key = ['a', 'b', 'c', 'd'].find(k => e.target.classList.contains(k));
+      setTimeout(() => runners[key](e.target), 700);
+    }, i * 140);
+  }), { threshold: .25 });
+  cards.forEach(c => io.observe(c));
+})();
+</script>
+</body>
+</html>

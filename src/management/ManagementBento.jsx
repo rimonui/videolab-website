@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /* ------------------------------------------------------------------ */
 /*  Motion helpers                                                     */
@@ -163,7 +163,22 @@ const AGO = ['Just now', '12m ago', '30m ago', '1h ago'];
 
 function ActivityDemo({ play }) {
   const tick = useTick(3200, play);
-  const feed = [tick, tick - 1, tick - 2]; // newest first; negatives wrap to earlier items
+  const feed = [tick, tick - 1, tick - 2, tick - 3]; // newest first; negatives wrap to earlier items
+  const listRef = useRef(null);
+
+  // FLIP: when a new item lands on top, start the whole list shifted up by
+  // that item's height, then glide to rest on the compositor (transform only).
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list || tick === 0) return;
+    const first = list.firstElementChild;
+    const h = first ? first.getBoundingClientRect().height : 0;
+    list.style.transition = 'none';
+    list.style.transform = `translate3d(0, ${-h}px, 0)`;
+    list.getBoundingClientRect(); // commit the start position
+    list.style.transition = '';
+    list.style.transform = '';
+  }, [tick]);
   return (
     <Window className="win--activity">
       <div className="win__bar">
@@ -173,13 +188,13 @@ function ActivityDemo({ play }) {
         </div>
         <button className="ghost-btn" type="button">See All</button>
       </div>
-      <ul className="feed">
+      <ul className="feed" ref={listRef}>
         {feed.map((n, i) => {
           const idx = ((n % ACTIVITY.length) + ACTIVITY.length) % ACTIVITY.length;
           const a = ACTIVITY[idx];
           const p = PEOPLE[a.who];
           return (
-            <li key={n} className={`feed__item${i === 0 && tick > 0 ? ' is-new' : ''}`}>
+            <li key={n} className={`feed__item${i === 0 && tick > 0 ? ' is-new' : ''}`} data-pos={i}>
               <div className="feed__inner">
                 <div className="feed__who">
                   <Avatar person={p} size={30} online={i === 0} />
@@ -239,7 +254,7 @@ function ScheduleDemo({ play }) {
                 <span>{r.dept}</span>
                 <span>{r.by}</span>
                 <span>
-                  <em className={`pill pill--${on ? 'info' : r.rest[1]}`} key={on ? 'on' : 'off'}>
+                  <em className={`pill pill--${on ? 'info' : r.rest[1]}`}>
                     {on ? 'Manage' : r.rest[0]}
                   </em>
                 </span>
@@ -288,7 +303,7 @@ function CalendarDemo({ play }) {
       <div className="cal">
         {DAYS.map((d) => <span key={d} className="cal__dow">{d}</span>)}
         <div className="cal__grid">
-          <span className="cal__sel" style={{ '--c': idx % 7, '--r': Math.floor(idx / 7) }} aria-hidden="true" />
+          <span className="cal__sel" style={{ '--c': idx % 7, '--r': Math.floor(idx / 7) }} aria-hidden="true"><i /></span>
           {CELLS.map((c, i) => {
             const ev = !c.muted && EVENTS[c.d];
             const on = i === idx;

@@ -54,25 +54,27 @@ function useTick(ms, active) {
 /*  Shared bits                                                        */
 /* ------------------------------------------------------------------ */
 
+// Team portraits from gr8rstudio.com/about, cropped to small avatars.
+const photos = import.meta.glob('./avatars/*.jpg', { eager: true, import: 'default' });
+const photo = (k) => photos[`./avatars/${k}.jpg`];
+
 const PEOPLE = {
-  john: { name: 'John Doe', role: 'Account Manager', tone: '#E9DFD3' },
-  bang: { name: 'Bang Chan', role: 'Product Manager', tone: '#DCE3EC' },
-  hanni: { name: 'Pham Hanni', role: 'Social Specialist', tone: '#EEDCE0' },
-  leo: { name: 'Leo Park', role: 'Frontend Engineer', tone: '#DDE9DF' },
-  mia: { name: 'Mia Chen', role: 'UX Researcher', tone: '#E6E1F0' },
-  omar: { name: 'Omar Faruk', role: 'Data Analyst', tone: '#F1E6CF' },
-  sara: { name: 'Sara Kim', role: 'HR Lead', tone: '#DCEAEA' },
+  tanjim: { name: 'Tanjim Islam', role: 'Founder & CEO' },
+  abu: { name: 'Abu Hasan', role: 'Managing Director' },
+  ikram: { name: 'Ikram Sakib', role: 'Senior Product Designer' },
+  sayttom: { name: 'Sayttom Das', role: 'Senior Product Designer' },
+  rimon: { name: 'Abdul Ahad Rimon', role: 'Product Designer' },
+  abid: { name: 'Abid Hasan', role: 'Marketing Strategist' },
+  najmul: { name: 'Najmul Hossain', role: 'Full Stack Developer' },
+  shohag: { name: 'Shohag Sorkar', role: 'Framer Developer' },
+  tamim: { name: 'Tamim Dary', role: 'Digital Communication Specialist' },
 };
+Object.entries(PEOPLE).forEach(([k, p]) => { p.src = photo(k); });
 
 function Avatar({ person, size = 28, online = false }) {
-  const initials = person.name.split(' ').map((p) => p[0]).join('');
   return (
-    <span
-      className={`av${online ? ' av--online' : ''}`}
-      style={{ '--av': `${size}px`, '--tone': person.tone }}
-      aria-hidden="true"
-    >
-      {initials}
+    <span className={`av${online ? ' av--online' : ''}`} style={{ '--av': `${size}px` }} aria-hidden="true">
+      <img src={person.src} alt="" width={size} height={size} loading="lazy" decoding="async" />
     </span>
   );
 }
@@ -174,7 +176,7 @@ function useTween(target, ms = 1400) {
   return value;
 }
 
-const CREW = ['mia', 'leo', 'hanni', 'bang'];
+const CREW = ['ikram', 'najmul', 'abid', 'rimon'];
 // Availability % and open tasks per member, one set per "week".
 const WEEKS = [
   [[80, 8], [40, 4], [60, 6], [90, 5]],
@@ -284,10 +286,10 @@ function WorkloadDemo({ play, reduced }) {
 /* ------------------------------------------------------------------ */
 
 const ROWS = [
-  { who: 'bang', dept: 'General Manager', by: 'Remote', rest: ['Completed', 'ok'] },
-  { who: 'hanni', dept: 'Social Specialist', by: 'On-site', rest: ['In Review', 'warn'] },
-  { who: 'leo', dept: 'Engineering', by: 'Hybrid', rest: ['Completed', 'ok'] },
-  { who: 'mia', dept: 'Research', by: 'Remote', rest: ['Pending', 'mute'] },
+  { who: 'sayttom', dept: 'Product Design', by: 'On-site', rest: ['Completed', 'ok'] },
+  { who: 'abid', dept: 'Marketing', by: 'Remote', rest: ['In Review', 'warn'] },
+  { who: 'shohag', dept: 'Development', by: 'Hybrid', rest: ['Completed', 'ok'] },
+  { who: 'tamim', dept: 'Communication', by: 'Remote', rest: ['Pending', 'mute'] },
 ];
 
 function ScheduleDemo({ play }) {
@@ -338,51 +340,88 @@ function ScheduleDemo({ play }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  3 · Calendar — selection glides between meeting days              */
+/*  3 · Calendar — Days / Meetings toggle; meeting badges morph in     */
 /* ------------------------------------------------------------------ */
 
-const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-// January 2025 starts on a Wednesday.
+const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+// December, Monday-first, starting on a Wednesday.
 const CELLS = [
-  ...[29, 30, 31].map((d) => ({ d, muted: true })),
+  { d: 29, muted: true }, { d: 30, muted: true },
   ...Array.from({ length: 31 }, (_, i) => ({ d: i + 1 })),
-  { d: 1, muted: true },
+  { d: 1, muted: true }, { d: 2, muted: true },
 ];
-const EVENTS = { 6: ['y'], 7: ['k'], 8: ['y', 'k'], 13: ['k'], 14: ['y'], 16: ['k'], 21: ['y', 'k'], 23: ['y'], 28: ['k'] };
-const STOPS = [6, 8, 14, 16, 21, 23, 28];
+const TODAY = 26;
+// Meeting badges: kind picks the glyph, `urgent` turns it red.
+const MEETINGS = { 8: 'video', 9: 'team', 15: 'one', 20: 'urgent', 23: 'video' };
+const BAND = [8, 9]; // multi-day offsite
+
+const BADGE = {
+  video: <path d="M3.5 6.5h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1zM10.5 9l3-2v6l-3-2z" fill="#fff" />,
+  team: (
+    <>
+      <circle cx="7" cy="7.5" r="2" fill="#fff" />
+      <circle cx="12" cy="8" r="1.6" fill="#fff" opacity=".85" />
+      <path d="M3.5 14c.4-2 1.8-3 3.5-3s3.1 1 3.5 3zM10.6 13.6c.2-1.3 1-2.1 2-2.1 1.2 0 2 .8 2.3 2.1z" fill="#fff" />
+    </>
+  ),
+  one: (
+    <>
+      <circle cx="9" cy="7" r="2.4" fill="#fff" />
+      <path d="M4.5 14.5c.5-2.4 2.3-3.6 4.5-3.6s4 1.2 4.5 3.6z" fill="#fff" />
+    </>
+  ),
+  urgent: <path d="M9 4.5v6M9 13.2v.3" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />,
+};
 
 function CalendarDemo({ play }) {
-  const tick = useTick(1700, play);
-  const sel = STOPS[tick % STOPS.length];
-  const idx = CELLS.findIndex((c) => !c.muted && c.d === sel);
+  const tick = useTick(3200, play);
+  const meetings = tick % 2 === 1;
+  const bandStart = CELLS.findIndex((c) => !c.muted && c.d === BAND[0]);
   return (
     <Window className="win--calendar">
       <div className="cal__top">
-        <span className="cal__label">
-          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">{ICONS.calendar}</svg>
-          Calendar
-        </span>
-        <strong>January 2025</strong>
-      </div>
-      <div className="cal">
-        {DAYS.map((d) => <span key={d} className="cal__dow">{d}</span>)}
-        <div className="cal__grid">
-          <span className="cal__sel" style={{ '--c': idx % 7, '--r': Math.floor(idx / 7) }} aria-hidden="true"><i /></span>
-          {CELLS.map((c, i) => {
-            const ev = !c.muted && EVENTS[c.d];
-            const on = i === idx;
-            return (
-              <span key={i} className={`cal__day${c.muted ? ' is-muted' : ''}${on ? ' is-on' : ''}`}>
-                {c.d}
-                {ev && (
-                  <span className="cal__dots">
-                    {ev.map((t, j) => <i key={j} className={`dot dot--${t}`} />)}
-                  </span>
-                )}
-              </span>
-            );
-          })}
+        <div className="cal__month">
+          <strong>December</strong>
+          <span className="cal__nav" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="14" height="14"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <svg viewBox="0 0 16 16" width="14" height="14"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </span>
         </div>
+        <div className={`seg${meetings ? ' is-right' : ''}`} role="tablist">
+          <span className="seg__pill" aria-hidden="true" />
+          <button type="button" role="tab" aria-selected={!meetings}>Days</button>
+          <button type="button" role="tab" aria-selected={meetings}>Meetings</button>
+        </div>
+      </div>
+
+      <div className="cal__dow">
+        {DOW.map((d) => <span key={d}>{d}</span>)}
+      </div>
+
+      <div className={`cal__grid${meetings ? ' is-meetings' : ''}`}>
+        <span
+          className="cal__band"
+          style={{ '--c': bandStart % 7, '--r': Math.floor(bandStart / 7), '--n': BAND.length }}
+          aria-hidden="true"
+        />
+        {CELLS.map((c, i) => {
+          const kind = !c.muted && MEETINGS[c.d];
+          const today = !c.muted && c.d === TODAY;
+          return (
+            <span
+              key={i}
+              className={`cal__day${c.muted ? ' is-muted' : ''}${today ? ' is-today' : ''}${kind ? ' has-meet' : ''}${kind && BAND.includes(c.d) ? ' in-band' : ''}`}
+              style={{ '--i': kind ? Object.keys(MEETINGS).indexOf(String(c.d)) : 0 }}
+            >
+              <span className="cal__num">{c.d}</span>
+              {kind && (
+                <span className={`cal__badge${kind === 'urgent' ? ' is-urgent' : ''}`} aria-hidden="true">
+                  <svg viewBox="0 0 18 18" width="15" height="15">{BADGE[kind]}</svg>
+                </span>
+              )}
+            </span>
+          );
+        })}
       </div>
     </Window>
   );
@@ -392,7 +431,7 @@ function CalendarDemo({ play }) {
 /*  4 · Employee list — slow continuous roll, presence pulse            */
 /* ------------------------------------------------------------------ */
 
-const TEAM = ['bang', 'hanni', 'leo', 'mia', 'omar', 'sara'];
+const TEAM = ['tanjim', 'abu', 'sayttom', 'ikram', 'rimon', 'najmul'];
 
 function TeamDemo({ play }) {
   return (

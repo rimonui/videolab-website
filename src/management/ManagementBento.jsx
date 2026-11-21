@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /* ------------------------------------------------------------------ */
 /*  Motion helpers                                                     */
@@ -143,74 +143,138 @@ function Card({ icon, title, text, layout = 'stack', className = '', delay = 0, 
           <p className="bc__text">{text}</p>
         </div>
       </header>
-      <div className="bc__stage">{children(visible && !reduced)}</div>
+      <div className="bc__stage">{children(visible && !reduced, reduced)}</div>
     </article>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  1 · Employee activity — live feed, new items push in from the top  */
+/*  1 · Team workload — donut + availability table, values morph live  */
 /* ------------------------------------------------------------------ */
 
-const ACTIVITY = [
-  { who: 'john', pre: 'Reviewed and forwarded the invoice to', link: 'sarah@email.com', post: 'for their attention.' },
-  { who: 'hanni', pre: 'Published the weekly campaign report to', link: '#marketing', post: '' },
-  { who: 'bang', pre: 'Moved', link: 'Q3 Roadmap', post: 'to “In review” and assigned 3 tasks.' },
-  { who: 'leo', pre: 'Shipped the onboarding fix and closed', link: '4 tickets', post: 'before the deadline.' },
-  { who: 'mia', pre: 'Shared new interview notes with', link: 'Design Team', post: '' },
+/* Eases a number toward `target` on rAF (ease-out cubic). */
+function useTween(target, ms = 1400) {
+  const [value, setValue] = useState(target);
+  const cur = useRef(target);
+  useEffect(() => {
+    const from = cur.current;
+    if (from === target) return;
+    let raf;
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / ms);
+      const e = 1 - Math.pow(1 - t, 3);
+      cur.current = from + (target - from) * e;
+      setValue(cur.current);
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms]);
+  return value;
+}
+
+const CREW = ['mia', 'leo', 'hanni', 'bang'];
+// Availability % and open tasks per member, one set per "week".
+const WEEKS = [
+  [[80, 8], [40, 4], [60, 6], [90, 5]],
+  [[85, 9], [55, 5], [75, 7], [80, 6]],
+  [[70, 7], [35, 3], [50, 5], [90, 6]],
 ];
-const AGO = ['Just now', '12m ago', '30m ago', '1h ago'];
+const avg = (w) => Math.round(w.reduce((s, [a]) => s + a, 0) / w.length);
+const tone = (v) => (v >= 70 ? 'ok' : v >= 50 ? 'mid' : 'low');
 
-function ActivityDemo({ play }) {
-  const tick = useTick(3200, play);
-  const feed = [tick, tick - 1, tick - 2, tick - 3]; // newest first; negatives wrap to earlier items
-  const listRef = useRef(null);
+const R = 64;
+const C = 2 * Math.PI * R;
 
-  // FLIP: when a new item lands on top, start the whole list shifted up by
-  // that item's height, then glide to rest on the compositor (transform only).
-  useLayoutEffect(() => {
-    const list = listRef.current;
-    if (!list || tick === 0) return;
-    const first = list.firstElementChild;
-    const h = first ? first.getBoundingClientRect().height : 0;
-    list.style.transition = 'none';
-    list.style.transform = `translate3d(0, ${-h}px, 0)`;
-    list.getBoundingClientRect(); // commit the start position
-    list.style.transition = '';
-    list.style.transform = '';
-  }, [tick]);
+function WorkloadRow({ person, avail, tasks, delay }) {
+  const a = useTween(avail, 1300);
+  const t = useTween(tasks, 1300);
   return (
-    <Window className="win--activity">
-      <div className="win__bar">
-        <div>
-          <h4 className="win__h">Employee Activity</h4>
-          <p className="win__sub">See what&apos;s your employee is up to.</p>
-        </div>
-        <button className="ghost-btn" type="button">See All</button>
+    <li className="wl__row" style={{ '--i': delay }}>
+      <span className="wl__member">
+        <Avatar person={person} size={28} />
+        <span>{person.name}</span>
+      </span>
+      <span className="wl__avail">
+        <i className={`wl__dot wl__dot--${tone(Math.round(a))}`} />
+        {Math.round(a)}%
+      </span>
+      <span className="wl__tasks">{Math.round(t)}</span>
+    </li>
+  );
+}
+
+function WorkloadDemo({ play, reduced }) {
+  const started = useRef(false);
+  if (play || reduced) started.current = true;
+  const tick = useTick(4200, play);
+  const week = WEEKS[tick % WEEKS.length];
+  const total = started.current ? avg(week) : 0;
+  const pct = useTween(total, reduced ? 1 : 1600);
+  const rows = started.current ? week : week.map(() => [0, 0]);
+  return (
+    <Window className="win--workload">
+      <div className="wl__head">
+        <h4 className="wl__title">
+          Team Workload
+          <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" strokeWidth="1.3" />
+            <path d="M8 7.2v3.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <circle cx="8" cy="5.1" r=".85" fill="currentColor" />
+          </svg>
+        </h4>
+        <button className="wl__more" type="button" aria-label="More options">
+          <i /><i /><i />
+        </button>
       </div>
-      <ul className="feed" ref={listRef}>
-        {feed.map((n, i) => {
-          const idx = ((n % ACTIVITY.length) + ACTIVITY.length) % ACTIVITY.length;
-          const a = ACTIVITY[idx];
-          const p = PEOPLE[a.who];
-          return (
-            <li key={n} className={`feed__item${i === 0 && tick > 0 ? ' is-new' : ''}`} data-pos={i}>
-              <div className="feed__inner">
-                <div className="feed__who">
-                  <Avatar person={p} size={30} online={i === 0} />
-                  <div>
-                    <strong>{p.name}</strong>
-                    <span>{AGO[i]}</span>
-                  </div>
-                </div>
-                <p className="feed__msg">
-                  {a.pre} <a href="#activity" onClick={(e) => e.preventDefault()}>{a.link}</a> {a.post}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+
+      <div className="wl__body">
+        <div className="wl__donut">
+          <svg viewBox="0 0 180 180" aria-hidden="true">
+            <defs>
+              <linearGradient id="wl-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#6aa5ff" />
+                <stop offset="1" stopColor="#1f5fee" />
+              </linearGradient>
+              <pattern id="wl-stripes" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="7" height="7" fill="#f1f2f4" />
+                <rect width="2.2" height="7" fill="#dfe2e7" />
+              </pattern>
+            </defs>
+            <circle cx="90" cy="90" r={R} fill="none" stroke="url(#wl-stripes)" strokeWidth="22" />
+            <circle
+              className="wl__arc"
+              cx="90" cy="90" r={R}
+              fill="none" stroke="url(#wl-grad)" strokeWidth="22" strokeLinecap="round"
+              strokeDasharray={C}
+              strokeDashoffset={C * (1 - Math.max(0.001, pct / 100))}
+            />
+          </svg>
+          <div className="wl__center">
+            <strong>{Math.round(pct)}%</strong>
+            <span>Total Capacity</span>
+          </div>
+        </div>
+
+        <div className="wl__table">
+          <div className="wl__row wl__row--head">
+            <span>Member</span><span>Availability</span><span className="wl__tasks">Tasks</span>
+          </div>
+          <ul>
+            {CREW.map((k, i) => (
+              <WorkloadRow key={k} person={PEOPLE[k]} avail={rows[i][0]} tasks={rows[i][1]} delay={i} />
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <button className="wl__cta" type="button">
+        View Full Team
+        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+          <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
     </Window>
   );
 }
@@ -441,7 +505,7 @@ export default function ManagementBento() {
             text="Optimize employee performance and foster a positive work environment."
             delay={0}
           >
-            {(play) => <ActivityDemo play={play} />}
+            {(play, reduced) => <WorkloadDemo play={play} reduced={reduced} />}
           </Card>
 
           <Card

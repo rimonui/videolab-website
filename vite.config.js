@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         management: resolve(__dirname, 'management.html'),
+        socialVideo: resolve(__dirname, 'social-video.html'),
       },
     },
   },

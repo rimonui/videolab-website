@@ -32,3 +32,17 @@ src/
 - **Shape:** 20–28px radii, pill buttons, 1px hairlines, sticker badges
 
 Photography is hot-linked from Unsplash; swap the ids in `PHOTO` (src/data/menu.js) for brand shoots.
+
+## Management bento + social video
+
+- `management.html` — animated management bento section (`src/management/`).
+- `social-video.html` — a scripted camera tour of the bento used to render social videos (`src/management/video/`).
+
+Render 4K/60fps videos frame-by-frame (needs Playwright with Chromium, and ffmpeg):
+
+```bash
+npm run build && npx vite preview --port 4173 &
+npm run render:video -- landscape workspace-16x9.mp4   # 3840×2160 — X, LinkedIn
+npm run render:video -- portrait  workspace-4x5.mp4    # 2160×2700 — Instagram, Threads, LinkedIn feed
+npm run render:video -- story     workspace-9x16.mp4   # 2160×3840 — Reels, Stories
+```

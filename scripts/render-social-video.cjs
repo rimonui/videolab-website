@@ -76,7 +76,11 @@ const url = process.env.STAGE_URL || 'http://localhost:4173/social-video.html';
       window.__frame(t);
       window.__step(dt);
     }, { t, dt });
-    const { data } = await cdp.send('Page.captureScreenshot', { format: 'jpeg', quality: 95, optimizeForSpeed: true });
+    const { data } = await cdp.send('Page.captureScreenshot', {
+      format: 'jpeg', quality: 95, optimizeForSpeed: true,
+      // Explicit clip + scale: without it CDP returns CSS-pixel (1x) frames.
+      clip: { x: 0, y: 0, width: vp.width, height: vp.height, scale: 2 },
+    });
     if (!ff.stdin.write(Buffer.from(data, 'base64'))) await new Promise((r) => ff.stdin.once('drain', r));
     if (i % 120 === 0) console.log(`${format}: frame ${i}/${frames}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }
